@@ -1,0 +1,1739 @@
+openapi: 3.0.3
+info:
+  title: MetaMask Ethereum JSON-RPC API
+  description: |
+    A comprehensive API specification for MetaMask's Ethereum JSON-RPC methods.
+    This API wraps standard Ethereum JSON-RPC methods and MetaMask-specific wallet methods.
+    
+    ## Authentication
+    This API requires connection to an Ethereum node (via Infura, Alchemy, or local node).
+    Some methods require user authentication through MetaMask wallet connection.
+    
+    ## Categories
+    - **Wallet Methods**: MetaMask-specific functionality
+    - **Account Methods**: Account and transaction management
+    - **Signing Methods**: Message and data signing
+    - **Chain Methods**: Network and blockchain information
+    - **State Methods**: Blockchain state queries
+    - **Filter Methods**: Event filtering and subscriptions
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: https://docs.metamask.io
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+  - url: https://mainnet.infura.io/v3/{apiKey}
+    description: Ethereum Mainnet via Infura
+    variables:
+      apiKey:
+        default: YOUR_API_KEY
+        description: Your Infura API key
+
+tags:
+  - name: Wallet
+    description: MetaMask-specific wallet methods
+  - name: Accounts
+    description: Account and transaction methods
+  - name: Signing
+    description: Message signing methods
+  - name: Chain
+    description: Chain and network information
+  - name: Blocks
+    description: Block-related queries
+  - name: State
+    description: Blockchain state queries
+  - name: Filters
+    description: Event filtering and subscriptions
+  - name: Utility
+    description: Utility methods
+
+paths:
+  # ============================================
+  # WALLET METHODS
+  # ============================================
+  /wallet/addEthereumChain:
+    post:
+      tags: [Wallet]
+      summary: Add Ethereum Chain
+      description: Adds a new network/chain to MetaMask
+      operationId: walletAddEthereumChain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddEthereumChainRequest'
+            example:
+              chainId: "0x89"
+              chainName: "Polygon Mainnet"
+              nativeCurrency:
+                name: "MATIC"
+                symbol: "MATIC"
+                decimals: 18
+              rpcUrls: ["https://polygon-rpc.com"]
+              blockExplorerUrls: ["https://polygonscan.com"]
+      responses:
+        '200':
+          description: Chain added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '4001':
+          description: User rejected the request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /wallet/switchEthereumChain:
+    post:
+      tags: [Wallet]
+      summary: Switch Ethereum Chain
+      description: Switches to a different network/chain
+      operationId: walletSwitchEthereumChain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [chainId]
+              properties:
+                chainId:
+                  type: string
+                  description: The chain ID as a hex string
+                  example: "0x1"
+      responses:
+        '200':
+          description: Chain switched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '4902':
+          description: Chain not added to MetaMask
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /wallet/watchAsset:
+    post:
+      tags: [Wallet]
+      summary: Watch Asset
+      description: Prompts user to track a token in MetaMask
+      operationId: walletWatchAsset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WatchAssetRequest'
+            example:
+              type: "ERC20"
+              options:
+                address: "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+                symbol: "USDT"
+                decimals: 6
+                image: "https://example.com/usdt.png"
+      responses:
+        '200':
+          description: Asset watch request processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    description: Whether the token was added
+
+  /wallet/requestPermissions:
+    post:
+      tags: [Wallet]
+      summary: Request Permissions
+      description: Request permissions from the user
+      operationId: walletRequestPermissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eth_accounts:
+                  type: object
+                  description: Request account access permission
+      responses:
+        '200':
+          description: Permissions granted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+
+  /wallet/getPermissions:
+    get:
+      tags: [Wallet]
+      summary: Get Permissions
+      description: Get current granted permissions
+      operationId: walletGetPermissions
+      responses:
+        '200':
+          description: Current permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+
+  /wallet/revokePermissions:
+    post:
+      tags: [Wallet]
+      summary: Revoke Permissions
+      description: Revoke previously granted permissions
+      operationId: walletRevokePermissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eth_accounts:
+                  type: object
+      responses:
+        '200':
+          description: Permissions revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /wallet/sendCalls:
+    post:
+      tags: [Wallet]
+      summary: Send Batched Calls
+      description: Send multiple calls in a batch (EIP-5792)
+      operationId: walletSendCalls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendCallsRequest'
+      responses:
+        '200':
+          description: Calls submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    description: Batch call identifier
+
+  /wallet/getCallsStatus:
+    post:
+      tags: [Wallet]
+      summary: Get Calls Status
+      description: Get status of batched calls
+      operationId: walletGetCallsStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [batchId]
+              properties:
+                batchId:
+                  type: string
+      responses:
+        '200':
+          description: Batch status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallsStatusResponse'
+
+  /wallet/getCapabilities:
+    get:
+      tags: [Wallet]
+      summary: Get Wallet Capabilities
+      description: Get wallet capabilities for connected accounts
+      operationId: walletGetCapabilities
+      responses:
+        '200':
+          description: Wallet capabilities
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  # ============================================
+  # ACCOUNT METHODS
+  # ============================================
+  /eth/requestAccounts:
+    post:
+      tags: [Accounts]
+      summary: Request Accounts
+      description: Request user to connect their accounts (triggers MetaMask popup)
+      operationId: ethRequestAccounts
+      responses:
+        '200':
+          description: Connected accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsResponse'
+        '4001':
+          description: User rejected request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /eth/accounts:
+    get:
+      tags: [Accounts]
+      summary: Get Accounts
+      description: Get list of accounts the caller is permitted to access
+      operationId: ethAccounts
+      responses:
+        '200':
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsResponse'
+
+  /eth/sendTransaction:
+    post:
+      tags: [Accounts]
+      summary: Send Transaction
+      description: Creates and sends a new transaction
+      operationId: ethSendTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+            example:
+              from: "0x742d35Cc6634C0532925a3b844Bc9e7595f5bEb1"
+              to: "0x742d35Cc6634C0532925a3b844Bc9e7595f5bEb2"
+              value: "0xde0b6b3a7640000"
+              gas: "0x5208"
+              gasPrice: "0x3b9aca00"
+              data: "0x"
+      responses:
+        '200':
+          description: Transaction hash
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionHashResponse'
+
+  /eth/sendRawTransaction:
+    post:
+      tags: [Accounts]
+      summary: Send Raw Transaction
+      description: Sends a signed raw transaction
+      operationId: ethSendRawTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [signedTransaction]
+              properties:
+                signedTransaction:
+                  type: string
+                  description: The signed transaction data
+                  example: "0xf86c..."
+      responses:
+        '200':
+          description: Transaction hash
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionHashResponse'
+
+  /eth/getTransactionByHash:
+    get:
+      tags: [Accounts]
+      summary: Get Transaction by Hash
+      description: Returns transaction information by hash
+      operationId: ethGetTransactionByHash
+      parameters:
+        - name: hash
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
+      responses:
+        '200':
+          description: Transaction object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionObject'
+
+  /eth/getTransactionReceipt:
+    get:
+      tags: [Accounts]
+      summary: Get Transaction Receipt
+      description: Returns the receipt of a transaction by hash
+      operationId: ethGetTransactionReceipt
+      parameters:
+        - name: hash
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction receipt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionReceipt'
+
+  /eth/getTransactionCount:
+    get:
+      tags: [Accounts]
+      summary: Get Transaction Count
+      description: Returns the number of transactions sent from an address (nonce)
+      operationId: ethGetTransactionCount
+      parameters:
+        - name: address
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "0x742d35Cc6634C0532925a3b844Bc9e7595f5bEb1"
+        - name: block
+          in: query
+          schema:
+            type: string
+            default: "latest"
+      responses:
+        '200':
+          description: Transaction count
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+
+  /eth/estimateGas:
+    post:
+      tags: [Accounts]
+      summary: Estimate Gas
+      description: Estimates the gas needed for a transaction
+      operationId: ethEstimateGas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '200':
+          description: Estimated gas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+
+  # ============================================
+  # SIGNING METHODS
+  # ============================================
+  /eth/personalSign:
+    post:
+      tags: [Signing]
+      summary: Personal Sign
+      description: Signs a message with the specified account
+      operationId: personalSign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message, address]
+              properties:
+                message:
+                  type: string
+                  description: Message to sign (hex or UTF-8 string)
+                  example: "Hello, World!"
+                address:
+                  type: string
+                  description: Address to sign with
+                  example: "0x742d35Cc6634C0532925a3b844Bc9e7595f5bEb1"
+      responses:
+        '200':
+          description: Signature
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureResponse'
+
+  /eth/signTypedDataV4:
+    post:
+      tags: [Signing]
+      summary: Sign Typed Data V4
+      description: Signs typed structured data according to EIP-712
+      operationId: ethSignTypedDataV4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignTypedDataRequest'
+      responses:
+        '200':
+          description: Signature
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureResponse'
+
+  /eth/decrypt:
+    post:
+      tags: [Signing]
+      summary: Decrypt (Deprecated)
+      description: Decrypts encrypted data
+      operationId: ethDecrypt
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [encryptedMessage, address]
+              properties:
+                encryptedMessage:
+                  type: string
+                address:
+                  type: string
+      responses:
+        '200':
+          description: Decrypted message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+
+  /eth/getEncryptionPublicKey:
+    post:
+      tags: [Signing]
+      summary: Get Encryption Public Key (Deprecated)
+      description: Gets the public encryption key for an account
+      operationId: ethGetEncryptionPublicKey
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address]
+              properties:
+                address:
+                  type: string
+      responses:
+        '200':
+          description: Public key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+
+  # ============================================
+  # CHAIN METHODS
+  # ============================================
+  /eth/chainId:
+    get:
+      tags: [Chain]
+      summary: Get Chain ID
+      description: Returns the current chain ID
+      operationId: ethChainId
+      responses:
+        '200':
+          description: Chain ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+              example:
+                result: "0x1"
+
+  /eth/blockNumber:
+    get:
+      tags: [Chain]
+      summary: Get Block Number
+      description: Returns the latest block number
+      operationId: ethBlockNumber
+      responses:
+        '200':
+          description: Block number
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+
+  /eth/syncing:
+    get:
+      tags: [Chain]
+      summary: Get Syncing Status
+      description: Returns sync status or false if not syncing
+      operationId: ethSyncing
+      responses:
+        '200':
+          description: Sync status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncingResponse'
+
+  /eth/coinbase:
+    get:
+      tags: [Chain]
+      summary: Get Coinbase
+      description: Returns the coinbase address
+      operationId: ethCoinbase
+      responses:
+        '200':
+          description: Coinbase address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressResponse'
+
+  /eth/gasPrice:
+    get:
+      tags: [Chain]
+      summary: Get Gas Price
+      description: Returns the current gas price in wei
+      operationId: ethGasPrice
+      responses:
+        '200':
+          description: Gas price
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+
+  /eth/feeHistory:
+    get:
+      tags: [Chain]
+      summary: Get Fee History
+      description: Returns historical gas information for EIP-1559
+      operationId: ethFeeHistory
+      parameters:
+        - name: blockCount
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 4
+        - name: newestBlock
+          in: query
+          schema:
+            type: string
+            default: "latest"
+        - name: rewardPercentiles
+          in: query
+          schema:
+            type: array
+            items:
+              type: number
+          example: [25, 50, 75]
+      responses:
+        '200':
+          description: Fee history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeHistoryResponse'
+
+  # ============================================
+  # BLOCK METHODS
+  # ============================================
+  /eth/getBlockByHash:
+    get:
+      tags: [Blocks]
+      summary: Get Block by Hash
+      description: Returns block information by hash
+      operationId: ethGetBlockByHash
+      parameters:
+        - name: hash
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: fullTransactions
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Block object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockObject'
+
+  /eth/getBlockByNumber:
+    get:
+      tags: [Blocks]
+      summary: Get Block by Number
+      description: Returns block information by number
+      operationId: ethGetBlockByNumber
+      parameters:
+        - name: blockNumber
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "latest"
+        - name: fullTransactions
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Block object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockObject'
+
+  /eth/getBlockTransactionCountByHash:
+    get:
+      tags: [Blocks]
+      summary: Get Block Transaction Count by Hash
+      description: Returns the number of transactions in a block by hash
+      operationId: ethGetBlockTransactionCountByHash
+      parameters:
+        - name: hash
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction count
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+
+  /eth/getBlockTransactionCountByNumber:
+    get:
+      tags: [Blocks]
+      summary: Get Block Transaction Count by Number
+      description: Returns the number of transactions in a block by number
+      operationId: ethGetBlockTransactionCountByNumber
+      parameters:
+        - name: blockNumber
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction count
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+
+  /eth/getUncleCountByBlockHash:
+    get:
+      tags: [Blocks]
+      summary: Get Uncle Count by Block Hash
+      description: Returns the number of uncles in a block by hash
+      operationId: ethGetUncleCountByBlockHash
+      parameters:
+        - name: hash
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Uncle count
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+
+  /eth/getUncleCountByBlockNumber:
+    get:
+      tags: [Blocks]
+      summary: Get Uncle Count by Block Number
+      description: Returns the number of uncles in a block by number
+      operationId: ethGetUncleCountByBlockNumber
+      parameters:
+        - name: blockNumber
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Uncle count
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+
+  # ============================================
+  # STATE METHODS
+  # ============================================
+  /eth/getBalance:
+    get:
+      tags: [State]
+      summary: Get Balance
+      description: Returns the balance of an account
+      operationId: ethGetBalance
+      parameters:
+        - name: address
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "0x742d35Cc6634C0532925a3b844Bc9e7595f5bEb1"
+        - name: block
+          in: query
+          schema:
+            type: string
+            default: "latest"
+      responses:
+        '200':
+          description: Balance in wei
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexQuantityResponse'
+
+  /eth/getStorageAt:
+    get:
+      tags: [State]
+      summary: Get Storage At
+      description: Returns the value from a storage position
+      operationId: ethGetStorageAt
+      parameters:
+        - name: address
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: position
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "0x0"
+        - name: block
+          in: query
+          schema:
+            type: string
+            default: "latest"
+      responses:
+        '200':
+          description: Storage value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexDataResponse'
+
+  /eth/getCode:
+    get:
+      tags: [State]
+      summary: Get Code
+      description: Returns the bytecode at an address
+      operationId: ethGetCode
+      parameters:
+        - name: address
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: block
+          in: query
+          schema:
+            type: string
+            default: "latest"
+      responses:
+        '200':
+          description: Contract bytecode
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexDataResponse'
+
+  /eth/getProof:
+    get:
+      tags: [State]
+      summary: Get Proof
+      description: Returns the account and storage proof
+      operationId: ethGetProof
+      parameters:
+        - name: address
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: storageKeys
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: block
+          in: query
+          schema:
+            type: string
+            default: "latest"
+      responses:
+        '200':
+          description: Proof object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProofResponse'
+
+  /eth/call:
+    post:
+      tags: [State]
+      summary: Call
+      description: Executes a read-only call to a contract
+      operationId: ethCall
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallRequest'
+      responses:
+        '200':
+          description: Return data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexDataResponse'
+
+  /eth/getLogs:
+    post:
+      tags: [State]
+      summary: Get Logs
+      description: Returns logs matching the filter criteria
+      operationId: ethGetLogs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogFilterRequest'
+      responses:
+        '200':
+          description: Array of log objects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsResponse'
+
+  # ============================================
+  # FILTER METHODS
+  # ============================================
+  /eth/newFilter:
+    post:
+      tags: [Filters]
+      summary: New Filter
+      description: Creates a new event filter
+      operationId: ethNewFilter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogFilterRequest'
+      responses:
+        '200':
+          description: Filter ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilterIdResponse'
+
+  /eth/newBlockFilter:
+    post:
+      tags: [Filters]
+      summary: New Block Filter
+      description: Creates a filter for new blocks
+      operationId: ethNewBlockFilter
+      responses:
+        '200':
+          description: Filter ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilterIdResponse'
+
+  /eth/newPendingTransactionFilter:
+    post:
+      tags: [Filters]
+      summary: New Pending Transaction Filter
+      description: Creates a filter for pending transactions
+      operationId: ethNewPendingTransactionFilter
+      responses:
+        '200':
+          description: Filter ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilterIdResponse'
+
+  /eth/getFilterChanges:
+    get:
+      tags: [Filters]
+      summary: Get Filter Changes
+      description: Returns filter updates since last poll
+      operationId: ethGetFilterChanges
+      parameters:
+        - name: filterId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Filter changes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      oneOf:
+                        - type: string
+                        - $ref: '#/components/schemas/LogObject'
+
+  /eth/getFilterLogs:
+    get:
+      tags: [Filters]
+      summary: Get Filter Logs
+      description: Returns all logs for a filter
+      operationId: ethGetFilterLogs
+      parameters:
+        - name: filterId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Filter logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsResponse'
+
+  /eth/uninstallFilter:
+    delete:
+      tags: [Filters]
+      summary: Uninstall Filter
+      description: Removes a filter
+      operationId: ethUninstallFilter
+      parameters:
+        - name: filterId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+
+  /eth/subscribe:
+    post:
+      tags: [Filters]
+      summary: Subscribe
+      description: Creates a subscription for events (WebSocket only)
+      operationId: ethSubscribe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subscriptionType]
+              properties:
+                subscriptionType:
+                  type: string
+                  enum: [newHeads, logs, newPendingTransactions, syncing]
+                filter:
+                  $ref: '#/components/schemas/LogFilterRequest'
+      responses:
+        '200':
+          description: Subscription ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+
+  /eth/unsubscribe:
+    post:
+      tags: [Filters]
+      summary: Unsubscribe
+      description: Cancels a subscription
+      operationId: ethUnsubscribe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subscriptionId]
+              properties:
+                subscriptionId:
+                  type: string
+      responses:
+        '200':
+          description: Success status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+
+  # ============================================
+  # UTILITY METHODS
+  # ============================================
+  /web3/clientVersion:
+    get:
+      tags: [Utility]
+      summary: Get Client Version
+      description: Returns the current client version
+      operationId: web3ClientVersion
+      responses:
+        '200':
+          description: Client version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    example: "MetaMask/v10.0.0"
+
+  # ============================================
+  # JSON-RPC GENERIC ENDPOINT
+  # ============================================
+  /jsonrpc:
+    post:
+      tags: [Utility]
+      summary: Generic JSON-RPC
+      description: Send any JSON-RPC method directly
+      operationId: jsonRpc
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JsonRpcRequest'
+      responses:
+        '200':
+          description: JSON-RPC response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JsonRpcResponse'
+
+components:
+  schemas:
+    # ============================================
+    # REQUEST SCHEMAS
+    # ============================================
+    AddEthereumChainRequest:
+      type: object
+      required: [chainId, chainName, rpcUrls]
+      properties:
+        chainId:
+          type: string
+          description: Chain ID as hex string
+        chainName:
+          type: string
+          description: Human-readable name
+        nativeCurrency:
+          type: object
+          properties:
+            name:
+              type: string
+            symbol:
+              type: string
+            decimals:
+              type: integer
+        rpcUrls:
+          type: array
+          items:
+            type: string
+        blockExplorerUrls:
+          type: array
+          items:
+            type: string
+        iconUrls:
+          type: array
+          items:
+            type: string
+
+    WatchAssetRequest:
+      type: object
+      required: [type, options]
+      properties:
+        type:
+          type: string
+          enum: [ERC20, ERC721, ERC1155]
+        options:
+          type: object
+          required: [address]
+          properties:
+            address:
+              type: string
+            symbol:
+              type: string
+            decimals:
+              type: integer
+            image:
+              type: string
+            tokenId:
+              type: string
+
+    TransactionRequest:
+      type: object
+      required: [from]
+      properties:
+        from:
+          type: string
+          description: Sender address
+        to:
+          type: string
+          description: Recipient address
+        value:
+          type: string
+          description: Value in wei (hex)
+        gas:
+          type: string
+          description: Gas limit (hex)
+        gasPrice:
+          type: string
+          description: Gas price (hex)
+        maxFeePerGas:
+          type: string
+          description: EIP-1559 max fee
+        maxPriorityFeePerGas:
+          type: string
+          description: EIP-1559 priority fee
+        data:
+          type: string
+          description: Contract call data
+        nonce:
+          type: string
+          description: Transaction nonce (hex)
+
+    SignTypedDataRequest:
+      type: object
+      required: [address, typedData]
+      properties:
+        address:
+          type: string
+        typedData:
+          type: object
+          required: [types, primaryType, domain, message]
+          properties:
+            types:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    type:
+                      type: string
+            primaryType:
+              type: string
+            domain:
+              type: object
+            message:
+              type: object
+
+    SendCallsRequest:
+      type: object
+      required: [version, chainId, from, calls]
+      properties:
+        version:
+          type: string
+        chainId:
+          type: string
+        from:
+          type: string
+        calls:
+          type: array
+          items:
+            type: object
+            properties:
+              to:
+                type: string
+              value:
+                type: string
+              data:
+                type: string
+
+    CallRequest:
+      type: object
+      properties:
+        transaction:
+          $ref: '#/components/schemas/TransactionRequest'
+        block:
+          type: string
+          default: "latest"
+
+    LogFilterRequest:
+      type: object
+      properties:
+        fromBlock:
+          type: string
+        toBlock:
+          type: string
+        address:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        topics:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+              - type: "null"
+        blockHash:
+          type: string
+
+    JsonRpcRequest:
+      type: object
+      required: [jsonrpc, method, id]
+      properties:
+        jsonrpc:
+          type: string
+          enum: ["2.0"]
+        method:
+          type: string
+        params:
+          type: array
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+
+    # ============================================
+    # RESPONSE SCHEMAS
+    # ============================================
+    SuccessResponse:
+      type: object
+      properties:
+        result:
+          type: "null"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+            data:
+              type: object
+
+    AccountsResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: string
+          example: ["0x742d35Cc6634C0532925a3b844Bc9e7595f5bEb1"]
+
+    PermissionsResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              parentCapability:
+                type: string
+              invoker:
+                type: string
+              caveats:
+                type: array
+                items:
+                  type: object
+
+    TransactionHashResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Transaction hash
+          example: "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
+
+    SignatureResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Signature
+
+    HexQuantityResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Hex-encoded quantity
+
+    HexDataResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Hex-encoded data
+
+    AddressResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Ethereum address
+
+    FilterIdResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Filter identifier
+
+    TransactionObject:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            hash:
+              type: string
+            nonce:
+              type: string
+            blockHash:
+              type: string
+            blockNumber:
+              type: string
+            transactionIndex:
+              type: string
+            from:
+              type: string
+            to:
+              type: string
+            value:
+              type: string
+            gas:
+              type: string
+            gasPrice:
+              type: string
+            input:
+              type: string
+            v:
+              type: string
+            r:
+              type: string
+            s:
+              type: string
+
+    TransactionReceipt:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            transactionHash:
+              type: string
+            transactionIndex:
+              type: string
+            blockHash:
+              type: string
+            blockNumber:
+              type: string
+            from:
+              type: string
+            to:
+              type: string
+            cumulativeGasUsed:
+              type: string
+            gasUsed:
+              type: string
+            contractAddress:
+              type: string
+            logs:
+              type: array
+              items:
+                $ref: '#/components/schemas/LogObject'
+            logsBloom:
+              type: string
+            status:
+              type: string
+            effectiveGasPrice:
+              type: string
+
+    BlockObject:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            number:
+              type: string
+            hash:
+              type: string
+            parentHash:
+              type: string
+            nonce:
+              type: string
+            sha3Uncles:
+              type: string
+            logsBloom:
+              type: string
+            transactionsRoot:
+              type: string
+            stateRoot:
+              type: string
+            receiptsRoot:
+              type: string
+            miner:
+              type: string
+            difficulty:
+              type: string
+            totalDifficulty:
+              type: string
+            extraData:
+              type: string
+            size:
+              type: string
+            gasLimit:
+              type: string
+            gasUsed:
+              type: string
+            timestamp:
+              type: string
+            transactions:
+              type: array
+              items:
+                oneOf:
+                  - type: string
+                  - $ref: '#/components/schemas/TransactionObject'
+            uncles:
+              type: array
+              items:
+                type: string
+            baseFeePerGas:
+              type: string
+
+    LogObject:
+      type: object
+      properties:
+        removed:
+          type: boolean
+        logIndex:
+          type: string
+        transactionIndex:
+          type: string
+        transactionHash:
+          type: string
+        blockHash:
+          type: string
+        blockNumber:
+          type: string
+        address:
+          type: string
+        data:
+          type: string
+        topics:
+          type: array
+          items:
+            type: string
+
+    LogsResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogObject'
+
+    SyncingResponse:
+      type: object
+      properties:
+        result:
+          oneOf:
+            - type: boolean
+            - type: object
+              properties:
+                startingBlock:
+                  type: string
+                currentBlock:
+                  type: string
+                highestBlock:
+                  type: string
+
+    FeeHistoryResponse:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            oldestBlock:
+              type: string
+            baseFeePerGas:
+              type: array
+              items:
+                type: string
+            gasUsedRatio:
+              type: array
+              items:
+                type: number
+            reward:
+              type: array
+              items:
+                type: array
+                items:
+                  type: string
+
+    ProofResponse:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            address:
+              type: string
+            accountProof:
+              type: array
+              items:
+                type: string
+            balance:
+              type: string
+            codeHash:
+              type: string
+            nonce:
+              type: string
+            storageHash:
+              type: string
+            storageProof:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  value:
+                    type: string
+                  proof:
+                    type: array
+                    items:
+                      type: string
+
+    CallsStatusResponse:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [PENDING, CONFIRMED]
+            receipts:
+              type: array
+              items:
+                $ref: '#/components/schemas/TransactionReceipt'
+
+    JsonRpcResponse:
+      type: object
+      properties:
+        jsonrpc:
+          type: string
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+        result:
+          description: The result of the method call
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+            data:
+              type: object
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for Infura/Alchemy access
