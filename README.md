@@ -1,5 +1,9 @@
 # Wallet Chat AI
 
+![logo](public/aiwallet-logo.png)
+
+
+
 **Manage your crypto wallet through natural conversations with AI**
 
 Talk to your Crypto wallet using natural language. Ask questions, check balances, send transactions, in a way anyone can understand.

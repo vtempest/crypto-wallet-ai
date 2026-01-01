@@ -44,7 +44,7 @@ export function generateEthereumTools() {
 
     // Add requestBody if the tool accepts one
     if (toolConfig.method.toLowerCase() !== 'get') {
-      schemaFields.requestBody = z.record(z.unknown()).optional().describe('Request body parameters');
+      schemaFields.requestBody = z.record(z.string(), z.unknown()).optional().describe('Request body parameters');
     }
 
     const schema = z.object(schemaFields);
