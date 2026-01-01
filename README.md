@@ -2,7 +2,7 @@
 
 **Manage your crypto wallet through natural conversations with AI**
 
-Talk to your Ethereum wallet using natural language. Ask questions, check balances, send transactions, and interact with smart contracts - all through an intelligent chatbot interface powered by LangChain and Ethereum MCP integration.
+Talk to your Crypto wallet using natural language. Ask questions, check balances, send transactions, in a way anyone can understand.
 
 ## What is This?
 
