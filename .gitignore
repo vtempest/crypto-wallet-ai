@@ -44,3 +44,4 @@ db.sqlite
 
 certificates.open-next/
 wrangler.toml
+.next/

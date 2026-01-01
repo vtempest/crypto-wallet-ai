@@ -1,6 +1,61 @@
-# MetaMask Ethereum JSON-RPC API
+# Wallet Chat AI
 
-A comprehensive REST API backend that wraps MetaMask's Ethereum JSON-RPC methods. This project provides both an OpenAPI specification and a Node.js backend implementation.
+**Manage your crypto wallet through natural conversations with AI**
+
+Talk to your Ethereum wallet using natural language. Ask questions, check balances, send transactions, and interact with smart contracts - all through an intelligent chatbot interface powered by LangChain and Ethereum MCP integration.
+
+## What is This?
+
+Wallet Chat AI combines:
+- 🤖 **AI Chatbot** - Natural language interface powered by LangChain
+- 🦊 **Ethereum Integration** - Full MetaMask-compatible wallet operations
+- 🔗 **MCP Server** - 49 Ethereum tools exposed via Model Context Protocol
+- 💬 **Conversational UX** - Ask questions in plain English instead of using complex CLI commands
+
+### Example Conversations
+
+```
+You: "What's my ETH balance?"
+AI: *checks your wallet* "Your balance is 2.5 ETH (about $4,250 USD)"
+
+You: "Send 0.1 ETH to vitalik.eth"
+AI: *prepares transaction* "I'll send 0.1 ETH to vitalik.eth (0x...). Gas will be about 3 gwei. Confirm?"
+
+You: "What's the current gas price?"
+AI: *queries network* "Current gas price is 15 gwei (fast: 20 gwei, slow: 10 gwei)"
+
+You: "Check transaction 0xabc123..."
+AI: *looks up transaction* "This transaction sent 1 ETH, confirmed in block 18234567,
+     used 21000 gas at 18 gwei"
+```
+
+## Quick Start
+
+1. **Start the MCP Server**
+   ```bash
+   cd src/lib/ethereum-api/mcp-server
+   npm install
+   npm start
+   ```
+
+2. **Start the Next.js App**
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+3. **Start Chatting!**
+   - Open http://localhost:3000
+   - Ask Ethereum questions in natural language
+   - The AI automatically uses the right tools
+
+📖 **See [Quick Start Guide](src/lib/ethereum-api/QUICKSTART.md) for detailed setup**
+
+---
+
+## MetaMask Ethereum JSON-RPC API
+
+A comprehensive REST API backend that wraps MetaMask's Ethereum JSON-RPC methods. This project provides both an OpenAPI specification and a Node.js backend implementation with intelligent LangChain integration.
 
 ## Features
 
