@@ -10,9 +10,8 @@ import {
 } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 import { toast } from 'sonner';
-import { Chat } from '@/app/library/page';
+import { GuestChat, deleteGuestChat } from '@/lib/guestStorage';
 import { useSession } from '@/lib/hooks/useSession';
-import { deleteGuestChat } from '@/lib/guestStorage';
 
 const DeleteChat = ({
   chatId,
@@ -21,8 +20,8 @@ const DeleteChat = ({
   redirect = false,
 }: {
   chatId: string;
-  chats: Chat[];
-  setChats: (chats: Chat[]) => void;
+  chats: GuestChat[];
+  setChats: (chats: GuestChat[]) => void;
   redirect?: boolean;
 }) => {
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);

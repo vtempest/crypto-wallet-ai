@@ -36,8 +36,6 @@ export function generateEthereumTools() {
           schemaFields[param.name] = z.number().int().describe('Count value');
         } else if (param.name === 'fullTransactions') {
           schemaFields[param.name] = z.boolean().optional().describe('Return full transaction objects');
-        } else if (Array.isArray(param)) {
-          schemaFields[param.name] = z.array(z.string()).describe(param.name);
         } else {
           schemaFields[param.name] = z.string().optional().describe(param.name);
         }
@@ -46,7 +44,7 @@ export function generateEthereumTools() {
 
     // Add requestBody if the tool accepts one
     if (toolConfig.method.toLowerCase() !== 'get') {
-      schemaFields.requestBody = z.record(z.any()).optional().describe('Request body parameters');
+      schemaFields.requestBody = z.record(z.unknown()).optional().describe('Request body parameters');
     }
 
     const schema = z.object(schemaFields);
