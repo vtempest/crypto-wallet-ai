@@ -51,7 +51,23 @@ export const user = sqliteTable('user', {
   updatedAt: integer('updatedAt', {
     mode: 'timestamp',
   }).notNull(),
+  stripeCustomerId: text('stripeCustomerId'),
+  subscriptionStatus: text('subscriptionStatus'),
+  trialAllowed: integer('trialAllowed', { mode: 'boolean' }).default(true),
 });
+
+// Wallet addresses table (for SIWE / Web3 auth)
+export const walletAddresses = sqliteTable("walletAddress", {
+  id: text("id").primaryKey(),
+  userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
+  address: text("address").notNull().unique(),
+  chainId: integer("chainId").notNull(),
+  isPrimary: integer("isPrimary", { mode: "boolean" }).default(false),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+});
+
+// Better-auth required tables with consistent naming
+export const users = user;
 
 export const session = sqliteTable('session', {
   id: text('id').primaryKey(),
@@ -71,6 +87,8 @@ export const session = sqliteTable('session', {
     .notNull()
     .references(() => user.id),
 });
+
+export const sessions = session;
 
 export const account = sqliteTable('account', {
   id: text('id').primaryKey(),
@@ -98,6 +116,8 @@ export const account = sqliteTable('account', {
   }).notNull(),
 });
 
+export const accounts = account;
+
 export const verification = sqliteTable('verification', {
   id: text('id').primaryKey(),
   identifier: text('identifier').notNull(),
@@ -112,6 +132,8 @@ export const verification = sqliteTable('verification', {
     mode: 'timestamp',
   }),
 });
+
+export const verifications = verification;
 
 export const favorites = sqliteTable('favorites', {
   id: integer('id').primaryKey(),

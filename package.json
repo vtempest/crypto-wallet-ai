@@ -15,6 +15,7 @@
     "db:create": "npm create cloud-db"
   },
   "dependencies": {
+    "@better-auth/stripe": "^1.4.10",
     "@headlessui/react": "2.1.0",
     "@iarna/toml": "^2.2.5",
     "@icons-pack/react-simple-icons": "^13.8.0",
@@ -67,6 +68,7 @@
     "compute-cosine-similarity": "^1.1.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
+    "ethers": "^6.16.0",
     "framer-motion": "^12.23.26",
     "grab-url": "^1.0.18",
     "highlight.js": "^11.11.1",
@@ -98,8 +100,10 @@
     "react-textarea-autosize": "^8.5.9",
     "sanitize-html": "^2.17.0",
     "shiki": "^3.20.0",
+    "siwe": "^3.0.0",
     "sonner": "^2.0.7",
     "streamdown": "^1.6.10",
+    "stripe": "^20.1.0",
     "tailwind-merge": "^3.4.0",
     "tldts": "^7.0.19",
     "vaul": "^1.1.2",
