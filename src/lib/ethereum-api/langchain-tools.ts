@@ -6,16 +6,17 @@
  */
 
 import { z } from 'zod';
+import { DynamicStructuredTool } from '@langchain/core/tools';
 import { getEthereumMCPClient } from './mcp-client';
 import { toolConfigs } from './mcp-server/src/tools-config.js';
 
 /**
- * Generate LangChain tools from MCP tool configurations
+ * Generate LangChain DynamicStructuredTools from MCP tool configurations
  */
-export function generateEthereumTools() {
+export function generateEthereumTools(): DynamicStructuredTool[] {
   const mcpClient = getEthereumMCPClient();
 
-  const tools: any[] = [];
+  const tools: DynamicStructuredTool[] = [];
 
   // Create a LangChain tool for each MCP tool
   for (const toolConfig of toolConfigs) {
@@ -23,7 +24,7 @@ export function generateEthereumTools() {
     const schemaFields: Record<string, any> = {};
 
     // Add execution parameters (query params, path params)
-    if (toolConfig.executionParameters) {
+    if (toolConfig.executionParameters && toolConfig.executionParameters.length > 0) {
       toolConfig.executionParameters.forEach((param: any) => {
         // Determine the Zod type based on parameter name/context
         if (param.name === 'address') {
@@ -47,16 +48,24 @@ export function generateEthereumTools() {
       schemaFields.requestBody = z.record(z.string(), z.unknown()).optional().describe('Request body parameters');
     }
 
+    // If no fields were added, add a dummy field to prevent empty schema errors
+    if (Object.keys(schemaFields).length === 0) {
+      schemaFields._dummy = z.string().optional().describe('No parameters required');
+    }
+
     const schema = z.object(schemaFields);
 
-    // Create the tool
-    const tool = {
+    // Create the DynamicStructuredTool
+    const tool = new DynamicStructuredTool({
       name: toolConfig.name,
       description: `${toolConfig.description}. ${getToolExtraDescription(toolConfig.name)}`,
       schema: schema,
       func: async (params: Record<string, any>) => {
         try {
-          const result = await mcpClient.callTool(toolConfig.name, params);
+          // Remove dummy parameter if present
+          const { _dummy, ...cleanParams } = params;
+
+          const result = await mcpClient.callTool(toolConfig.name, cleanParams);
 
           if (!result.ok) {
             return `Error calling ${toolConfig.name}: ${result.error || 'Unknown error'}`;
@@ -74,7 +83,7 @@ export function generateEthereumTools() {
           return `Error executing ${toolConfig.name}: ${error.message}`;
         }
       },
-    };
+    });
 
     tools.push(tool);
   }
@@ -113,7 +122,7 @@ function getToolExtraDescription(toolName: string): string {
  * Get a subset of the most commonly used Ethereum tools
  * This is useful when you want to limit the number of tools available to the agent
  */
-export function generateCommonEthereumTools() {
+export function generateCommonEthereumTools(): DynamicStructuredTool[] {
   const allTools = generateEthereumTools();
 
   const commonToolNames = [
@@ -138,7 +147,7 @@ export function generateCommonEthereumTools() {
 /**
  * Generate tools for wallet-specific operations
  */
-export function generateWalletTools() {
+export function generateWalletTools(): DynamicStructuredTool[] {
   const allTools = generateEthereumTools();
 
   const walletToolNames = [
@@ -160,7 +169,7 @@ export function generateWalletTools() {
 /**
  * Generate tools for blockchain data queries
  */
-export function generateBlockchainQueryTools() {
+export function generateBlockchainQueryTools(): DynamicStructuredTool[] {
   const allTools = generateEthereumTools();
 
   const queryToolNames = [

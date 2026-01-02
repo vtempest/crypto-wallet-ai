@@ -1,5 +1,6 @@
 import MetaSearchAgent from '@/lib/research/search/metaSearchAgent';
 import prompts from '../prompts';
+import { generateCommonEthereumTools } from '@/lib/ethereum-api/langchain-tools';
 
 export const searchHandlers: Record<string, MetaSearchAgent> = {
   webSearch: new MetaSearchAgent({
@@ -55,5 +56,15 @@ export const searchHandlers: Record<string, MetaSearchAgent> = {
     rerank: true,
     rerankThreshold: 0.3,
     searchWeb: true,
+  }),
+  ethereumWallet: new MetaSearchAgent({
+    activeEngines: [],
+    queryGeneratorPrompt: '',
+    queryGeneratorFewShots: [],
+    responsePrompt: prompts.ethereumWalletPrompt,
+    rerank: false,
+    rerankThreshold: 0,
+    searchWeb: false,
+    tools: generateCommonEthereumTools(),
   }),
 };

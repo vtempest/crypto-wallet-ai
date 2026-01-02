@@ -23,6 +23,8 @@ import fs from 'node:fs';
 import { formatChatHistoryAsString } from '@/lib/utils';
 import eventEmitter from 'events';
 import { StreamEvent } from '@langchain/core/tracers/log_stream';
+import { DynamicStructuredTool } from '@langchain/core/tools';
+import { AgentExecutor, createToolCallingAgent } from '@langchain/classic/agents';
 
 export interface MetaSearchAgentType {
   searchAndAnswer: (
@@ -43,6 +45,7 @@ interface Config {
   queryGeneratorFewShots: BaseMessageLike[];
   responsePrompt: string;
   activeEngines: string[];
+  tools?: DynamicStructuredTool[];
 }
 
 type BasicChainInput = {
@@ -267,6 +270,29 @@ class MetaSearchAgent implements MetaSearchAgentType {
     optimizationMode: 'speed' | 'balanced' | 'quality',
     systemInstructions: string,
   ) {
+    // If tools are provided, use agent executor
+    if (this.config.tools && this.config.tools.length > 0) {
+      const prompt = ChatPromptTemplate.fromMessages([
+        ['system', this.config.responsePrompt],
+        new MessagesPlaceholder('chat_history'),
+        ['user', '{query}'],
+        new MessagesPlaceholder('agent_scratchpad'),
+      ]);
+
+      const agent = await createToolCallingAgent({
+        llm,
+        tools: this.config.tools,
+        prompt,
+      });
+
+      return new AgentExecutor({
+        agent,
+        tools: this.config.tools,
+        verbose: false,
+      });
+    }
+
+    // Default chain without tools (original implementation)
     return RunnableSequence.from([
       RunnableMap.from({
         systemInstructions: () => systemInstructions,
@@ -380,6 +406,7 @@ class MetaSearchAgent implements MetaSearchAgentType {
     emitter: eventEmitter,
   ) {
     for await (const event of stream) {
+      // Handle sources
       if (
         event.event === 'on_chain_end' &&
         event.name === 'FinalSourceRetriever'
@@ -389,6 +416,8 @@ class MetaSearchAgent implements MetaSearchAgentType {
           JSON.stringify({ type: 'sources', data: event.data.output }),
         );
       }
+
+      // Handle regular chain streaming
       if (
         event.event === 'on_chain_stream' &&
         event.name === 'FinalResponseGenerator'
@@ -398,9 +427,40 @@ class MetaSearchAgent implements MetaSearchAgentType {
           JSON.stringify({ type: 'response', data: event.data.chunk }),
         );
       }
+
+      // Handle agent streaming (when tools are used)
+      if (
+        event.event === 'on_chat_model_stream' &&
+        this.config.tools && this.config.tools.length > 0
+      ) {
+        const content = event.data?.chunk?.content;
+        if (content && typeof content === 'string' && content.length > 0) {
+          emitter.emit(
+            'data',
+            JSON.stringify({ type: 'response', data: content }),
+          );
+        }
+      }
+
+      // Handle tool execution events
+      if (
+        event.event === 'on_tool_start' &&
+        this.config.tools && this.config.tools.length > 0
+      ) {
+        const toolName = event.name;
+        emitter.emit(
+          'data',
+          JSON.stringify({
+            type: 'response',
+            data: `\n\n🔧 Using tool: ${toolName}\n`
+          }),
+        );
+      }
+
+      // Handle end events
       if (
         event.event === 'on_chain_end' &&
-        event.name === 'FinalResponseGenerator'
+        (event.name === 'FinalResponseGenerator' || event.name === 'AgentExecutor')
       ) {
         emitter.emit('end');
       }
