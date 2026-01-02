@@ -5,6 +5,7 @@ import EmptyChatMessageInput from './EmptyChatMessageInput';
 import Footer, { defaultFooterLinks } from '@/components/layout/Footer';
 import SettingsButtonMobile from '@/components/Settings/SettingsButtonMobile';
 import MessageBoxLoading from './MessageBoxLoading';
+import UserMenu from '@/components/layout/UserMenu';
 
 const EmptyChat = ({ background }: { background?: string }) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -15,12 +16,7 @@ const EmptyChat = ({ background }: { background?: string }) => {
 
       <div className="relative z-10">
         <div className="absolute w-full flex flex-row items-center justify-end gap-2 pr-5 pt-5">
-          <a
-            href="/login"
-            className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95"
-          >
-            Login
-          </a>
+          <UserMenu />
           <SettingsButtonMobile />
         </div>
         <div className="flex flex-col items-center justify-center min-h-screen max-w-screen-sm mx-auto px-4">
