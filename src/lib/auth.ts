@@ -28,7 +28,7 @@ function getStripeClient() {
 //
 
 export const auth = betterAuth({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
   // basePath: "/api/auth", // better-auth defaults to this, but keeping it explicit if user wants
   secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || "your-secret-key",
   database: drizzleAdapter(db, {
@@ -52,7 +52,7 @@ export const auth = betterAuth({
       // Enable anonymous mode so email is not required
       // Users can sign in with just their Ethereum wallet
       anonymous: true,
-      domain: process.env.NEXT_PUBLIC_APP_DOMAIN?.split("//")[1] || "localhost:3000",
+      domain: process.env.NEXT_PUBLIC_BASE_URL?.split("//")[1] || "localhost:3000",
       getNonce: async () => {
         // Generate a cryptographically secure random nonce
         return randomBytes(32).toString("hex");
@@ -124,7 +124,7 @@ export const auth = betterAuth({
     minPasswordLength: 8,
   },
   trustedOrigins: [
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
   ],
   session: {
     expiresIn: 60 * 60 * 24 * 60, // 60 days
