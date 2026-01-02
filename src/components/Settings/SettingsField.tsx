@@ -10,7 +10,7 @@ import { Select } from '../ui/select';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
 import { Loader2 } from 'lucide-react';
-import { Switch } from '@headlessui/react';
+import { Switch } from '@/components/ui/switch';
 
 const emitClientConfigChanged = () => {
   if (typeof window !== 'undefined') {
@@ -308,15 +308,9 @@ const SettingsSwitch = ({
         </div>
         <Switch
           checked={isChecked}
-          onChange={handleSave}
+          onCheckedChange={handleSave}
           disabled={loading}
-          className="group relative flex h-6 w-12 shrink-0 cursor-pointer rounded-full bg-white/10 p-1 duration-200 ease-in-out focus:outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed data-[checked]:bg-sky-500"
-        >
-          <span
-            aria-hidden="true"
-            className="pointer-events-none inline-block size-4 translate-x-0 rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out group-data-[checked]:translate-x-6"
-          />
-        </Switch>
+        />
       </div>
     </section>
   );
