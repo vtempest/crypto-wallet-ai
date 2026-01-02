@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import './privacy.css';
 
 // Constants - can be moved to a config file later
-const APP_NAME = 'QwkSearch';
-const APP_EMAIL = 'contact@qwksearch.com';
-const LAST_REVISED_DATE = '2024-01-15';
+const APP_NAME = 'AI Wallet';
+const APP_EMAIL = 'contact@aiwallet.appdemo.site';
+const LAST_REVISED_DATE = '2026-01-01';
 
 export const metadata: Metadata = {
     title: `${APP_NAME} Terms of Service and Privacy Policy`,
