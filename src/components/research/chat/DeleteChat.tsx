@@ -1,14 +1,11 @@
 import { Trash } from 'lucide-react';
 import {
-  Description,
   Dialog,
-  DialogBackdrop,
-  DialogPanel,
+  DialogContent,
+  DialogDescription,
   DialogTitle,
-  Transition,
-  TransitionChild,
-} from '@headlessui/react';
-import { Fragment, useState } from 'react';
+} from '@/components/ui/dialog';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { GuestChat, deleteGuestChat } from '@/lib/guestStorage';
 import { useSession } from '@/lib/hooks/useSession';
@@ -72,59 +69,41 @@ const DeleteChat = ({
       >
         <Trash size={17} />
       </button>
-      <Transition appear show={confirmationDialogOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-50"
-          onClose={() => {
-            if (!loading) {
-              setConfirmationDialogOpen(false);
-            }
-          }}
-        >
-          <DialogBackdrop className="fixed inset-0 bg-black/30" />
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <TransitionChild
-                as={Fragment}
-                enter="ease-out duration-200"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-100"
-                leaveFrom="opacity-100 scale-200"
-                leaveTo="opacity-0 scale-95"
-              >
-                <DialogPanel className="w-full max-w-md transform rounded-2xl bg-light-secondary dark:bg-dark-secondary border border-light-200 dark:border-dark-200 p-6 text-left align-middle shadow-xl transition-all">
-                  <DialogTitle className="text-lg font-medium leading-6 dark:text-white">
-                    Delete Confirmation
-                  </DialogTitle>
-                  <Description className="text-sm dark:text-white/70 text-black/70">
-                    Are you sure you want to delete this chat?
-                  </Description>
-                  <div className="flex flex-row items-end justify-end space-x-4 mt-6">
-                    <button
-                      onClick={() => {
-                        if (!loading) {
-                          setConfirmationDialogOpen(false);
-                        }
-                      }}
-                      className="text-black/50 dark:text-white/50 text-sm hover:text-black/70 hover:dark:text-white/70 transition duration-200"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleDelete}
-                      className="text-red-400 text-sm hover:text-red-500 transition duration200"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </DialogPanel>
-              </TransitionChild>
-            </div>
+      <Dialog
+        open={confirmationDialogOpen}
+        onOpenChange={(open) => {
+          if (!loading) {
+            setConfirmationDialogOpen(open);
+          }
+        }}
+      >
+        <DialogContent className="w-full max-w-md rounded-2xl bg-light-secondary dark:bg-dark-secondary border border-light-200 dark:border-dark-200">
+          <DialogTitle className="text-lg font-medium leading-6 dark:text-white">
+            Delete Confirmation
+          </DialogTitle>
+          <DialogDescription className="text-sm dark:text-white/70 text-black/70">
+            Are you sure you want to delete this chat?
+          </DialogDescription>
+          <div className="flex flex-row items-end justify-end space-x-4 mt-6">
+            <button
+              onClick={() => {
+                if (!loading) {
+                  setConfirmationDialogOpen(false);
+                }
+              }}
+              className="text-black/50 dark:text-white/50 text-sm hover:text-black/70 hover:dark:text-white/70 transition duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              className="text-red-400 text-sm hover:text-red-500 transition duration200"
+            >
+              Delete
+            </button>
           </div>
-        </Dialog>
-      </Transition>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

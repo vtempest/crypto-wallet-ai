@@ -1,14 +1,13 @@
 import { Clock, Edit, Share, Trash, FileText, FileDown } from 'lucide-react';
 import { Message } from '../research/chat/ChatWindow';
-import { useEffect, useState, Fragment } from 'react';
+import { useEffect, useState } from 'react';
 import { formatTimeDifference } from '@/lib/utils';
 import DeleteChat from '../research/chat/DeleteChat';
 import {
   Popover,
-  PopoverButton,
-  PopoverPanel,
-  Transition,
-} from '@headlessui/react';
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
 import jsPDF from 'jspdf';
 import { useChat, Section } from '@/lib/hooks/useChat';
 import { useExtractPanel } from '@/contexts/ExtractPanelContext';
@@ -272,59 +271,49 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-1 min-w-0">
-            <Popover className="relative">
-              <PopoverButton className="p-2 rounded-lg hover:bg-secondary transition-colors duration-200">
+            <Popover>
+              <PopoverTrigger className="p-2 rounded-lg hover:bg-secondary transition-colors duration-200">
                 <Share size={16} className="text-muted-foreground" />
-              </PopoverButton>
-              <Transition
-                as={Fragment}
-                enter="transition ease-out duration-200"
-                enterFrom="opacity-0 translate-y-1"
-                enterTo="opacity-100 translate-y-0"
-                leave="transition ease-in duration-150"
-                leaveFrom="opacity-100 translate-y-0"
-                leaveTo="opacity-0 translate-y-1"
-              >
-                <PopoverPanel className="absolute right-0 mt-2 w-64 origin-top-right rounded-2xl bg-popover border border-border shadow-xl z-50">
-                  <div className="p-3">
-                    <div className="mb-2">
-                      <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
-                        Export Chat
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <button
-                        className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-xl hover:bg-secondary transition-colors duration-200"
-                        onClick={() => exportAsMarkdown(sections, title || '')}
-                      >
-                        <FileText size={16} className="text-primary" />
-                        <div>
-                          <p className="text-sm font-medium text-popover-foreground">
-                            Markdown
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            .md format
-                          </p>
-                        </div>
-                      </button>
-                      <button
-                        className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-xl hover:bg-secondary transition-colors duration-200"
-                        onClick={() => exportAsPDF(sections, title || '')}
-                      >
-                        <FileDown size={16} className="text-primary" />
-                        <div>
-                          <p className="text-sm font-medium text-popover-foreground">
-                            PDF
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Document format
-                          </p>
-                        </div>
-                      </button>
-                    </div>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 rounded-2xl bg-popover border border-border shadow-xl z-50">
+                <div className="p-3">
+                  <div className="mb-2">
+                    <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
+                      Export Chat
+                    </p>
                   </div>
-                </PopoverPanel>
-              </Transition>
+                  <div className="space-y-1">
+                    <button
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-xl hover:bg-secondary transition-colors duration-200"
+                      onClick={() => exportAsMarkdown(sections, title || '')}
+                    >
+                      <FileText size={16} className="text-primary" />
+                      <div>
+                        <p className="text-sm font-medium text-popover-foreground">
+                          Markdown
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          .md format
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-xl hover:bg-secondary transition-colors duration-200"
+                      onClick={() => exportAsPDF(sections, title || '')}
+                    >
+                      <FileDown size={16} className="text-primary" />
+                      <div>
+                        <p className="text-sm font-medium text-popover-foreground">
+                          PDF
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Document format
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </PopoverContent>
             </Popover>
             <DeleteChat
               redirect

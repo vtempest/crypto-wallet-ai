@@ -11,11 +11,8 @@ import {
 } from 'lucide-react';
 import {
   Dialog,
-  DialogPanel,
-  Transition,
-  TransitionChild,
-} from '@headlessui/react';
-import { Fragment } from 'react';
+  DialogContent,
+} from '@/components/ui/dialog';
 import { useExtractPanel } from '@/contexts/ExtractPanelContext';
 
 interface Article {
@@ -536,54 +533,25 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   // Mobile: Use Dialog overlay (same as before)
   if (!isDesktop) {
     return (
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={onClose}>
-          <TransitionChild
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent
+          className="fixed inset-y-0 right-0 h-full max-w-full translate-x-0 translate-y-0 top-0 left-auto rounded-none border-l border-r-0 border-t-0 border-b-0 p-0 data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right pointer-events-auto"
+          style={{ width: `${panelWidth}px` }}
+          hideCloseButton
+        >
+          {/* Horizontal Resize Handle */}
+          <div
+            ref={resizeRef}
+            onMouseDown={() => setIsResizing(true)}
+            className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-primary bg-transparent transition-colors z-50"
+            style={{ touchAction: 'none' }}
           >
-            <div className="fixed inset-0 bg-black/25" />
-          </TransitionChild>
-
-          <div className="fixed inset-0 overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-                <TransitionChild
-                  as={Fragment}
-                  enter="transform transition ease-in-out duration-300"
-                  enterFrom="translate-x-full"
-                  enterTo="translate-x-0"
-                  leave="transform transition ease-in-out duration-300"
-                  leaveFrom="translate-x-0"
-                  leaveTo="translate-x-full"
-                >
-                  <DialogPanel
-                    className="pointer-events-auto relative"
-                    style={{ width: `${panelWidth}px` }}
-                  >
-                    {/* Horizontal Resize Handle */}
-                    <div
-                      ref={resizeRef}
-                      onMouseDown={() => setIsResizing(true)}
-                      className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-primary bg-transparent transition-colors z-50"
-                      style={{ touchAction: 'none' }}
-                    >
-                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-12 rounded-full bg-muted-foreground opacity-50 hover:opacity-100 transition-opacity" />
-                    </div>
-
-                    {renderPanelContent()}
-                  </DialogPanel>
-                </TransitionChild>
-              </div>
-            </div>
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-12 rounded-full bg-muted-foreground opacity-50 hover:opacity-100 transition-opacity" />
           </div>
-        </Dialog>
-      </Transition>
+
+          {renderPanelContent()}
+        </DialogContent>
+      </Dialog>
     );
   }
 
