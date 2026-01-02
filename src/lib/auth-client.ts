@@ -1,5 +1,5 @@
 import { createAuthClient } from 'better-auth/react';
-import { oneTapClient, magicLinkClient } from 'better-auth/client/plugins';
+import { oneTapClient, magicLinkClient, siweClient } from 'better-auth/client/plugins';
 
 // Use current origin for local development, fall back to env variable for production
 const getBaseURL = () => {
@@ -18,5 +18,6 @@ export const authClient = createAuthClient({
       clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
     }),
     magicLinkClient(),
+    siweClient(),
   ],
 });
