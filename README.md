@@ -35,25 +35,37 @@ AI: *looks up transaction* "This transaction sent 1 ETH, confirmed in block 1823
 
 ## Quick Start
 
-1. **Start the MCP Server**
+1. **Install Dependencies**
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+
+2. **Setup Database** (REQUIRED)
+   ```bash
+   npm run db:push
+   ```
+   This creates all required tables for authentication and wallet management.
+
+3. **Start the MCP Server** (Optional - for Ethereum tools)
    ```bash
    cd src/lib/ethereum-api/mcp-server
    npm install
    npm start
    ```
 
-2. **Start the Next.js App**
+4. **Start the Next.js App**
    ```bash
-   npm install
    npm run dev
    ```
 
-3. **Start Chatting!**
+5. **Start Chatting!**
    - Open http://localhost:3000
+   - Sign in with Google or MetaMask
    - Ask Ethereum questions in natural language
    - The AI automatically uses the right tools
 
-📖 **See [Quick Start Guide](src/lib/ethereum-api/QUICKSTART.md) for detailed setup**
+📖 **See [Database Setup Guide](DATABASE_SETUP.md) for database configuration**
+📖 **See [Quick Start Guide](src/lib/ethereum-api/QUICKSTART.md) for Ethereum tools setup**
 
 ---
 
