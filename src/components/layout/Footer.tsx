@@ -85,11 +85,7 @@ export default function Footer({
 
 // Example usage with default links
 export const defaultFooterLinks: FooterLink[] = [
-    { url: "https://airesearch.js.org/docs/functions", text: "Docs", icon: "HelpCircle" },
-    // { url: "/pricing", text: "Pricing", icon: "DollarSign" },
-    { url: "https://www.linkedin.com/company/qwksearch/posts/", text: "Blog", icon: "Newspaper" },
     { url: "https://discord.gg/SJdBqBz3tV", text: "Support", icon: "MessageCircle" },
     { url: "/legal/privacy", text: "Privacy", icon: "Lock" },
     { url: "https://rights.institute", text: "Ethics", icon: "Bot" },
-    { url: "/custom", text: "Enterprise", icon: "Building2" },
 ];
