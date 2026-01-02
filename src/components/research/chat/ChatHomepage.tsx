@@ -14,11 +14,11 @@ const EmptyChat = ({ background }: { background?: string }) => {
 
 
       <div className="relative z-10">
-        <div className="absolute w-full flex flex-row items-center justify-end pr-5 pt-5">
+        <div className="absolute w-full flex flex-row items-center justify-end pr-5">
           <SettingsButtonMobile />
         </div>
-        <div className="flex flex-col items-center justify-center min-h-screen max-w-screen-sm mx-auto p-2 space-y-4">
-          <div className="flex flex-col items-center justify-center w-full space-y-8">
+        <div className="flex flex-col items-center justify-center min-h-screen max-w-screen-sm mx-auto">
+          <div className="flex flex-col items-center justify-center w-full">
             {/* <MessageBoxLoading /> */}
             <div className="relative w-full max-w-md group cursor-pointer" onClick={() => setIsVideoModalOpen(true)}>
               <img

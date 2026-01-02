@@ -63,7 +63,7 @@ const EmptyChatMessageInput = () => {
           onChange={(e) => setMessage(e.target.value)}
           minRows={2}
           className="px-2 bg-transparent placeholder:text-[15px] placeholder:text-muted-foreground text-sm text-foreground resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48"
-          placeholder="What are you curious to research?"
+          placeholder="What crypto transaction do you want to do?"
         />
         <div className="flex flex-row items-center justify-between mt-4">
           <Optimization />
