@@ -1,17 +1,18 @@
 import { ArrowRight } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import Focus from '../MessageInputActions/Focus';
-import Category from '../MessageInputActions/Category';
-import Optimization from '../MessageInputActions/Optimization';
-import Attach from '../MessageInputActions/Attach';
 import { useChat } from '@/lib/hooks/useChat';
-import ModelSelector from '../MessageInputActions/ChatModelSelector';
+
+const quickActions = [
+  { label: 'Send', prompt: 'I want to send crypto to another wallet' },
+  { label: 'Receive', prompt: 'I want to receive crypto in my wallet' },
+  { label: 'Deposit', prompt: 'I want to deposit crypto' },
+  { label: 'Check Balances', prompt: 'Show me my wallet balances' },
+];
 
 const EmptyChatMessageInput = () => {
   const { sendMessage } = useChat();
 
-  /* const [copilotEnabled, setCopilotEnabled] = useState(false); */
   const [message, setMessage] = useState('');
 
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -40,40 +41,37 @@ const EmptyChatMessageInput = () => {
     };
   }, []);
 
+  const handleQuickAction = (prompt: string) => {
+    sendMessage(prompt);
+  };
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        sendMessage(message);
-        setMessage('');
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+    <div className="w-full space-y-3">
+      <form
+        onSubmit={(e) => {
           e.preventDefault();
           sendMessage(message);
           setMessage('');
-        }
-      }}
-      className="w-full"
-    >
-      <div className="flex flex-col bg-secondary px-3 pt-5 pb-3 rounded-2xl w-full border border-border shadow-sm transition-all duration-200 focus-within:border-input">
-        <TextareaAutosize
-          ref={inputRef}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          minRows={2}
-          className="px-2 bg-transparent placeholder:text-[15px] placeholder:text-muted-foreground text-sm text-foreground resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48"
-          placeholder="What crypto transaction do you want to do?"
-        />
-        <div className="flex flex-row items-center justify-between mt-4">
-          <Optimization />
-          <div className="flex flex-row items-center space-x-2">
-            <div className="flex flex-row items-center space-x-1">
-              <ModelSelector />
-              <Focus />
-              <Category />
-              <Attach />
-            </div>
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage(message);
+            setMessage('');
+          }
+        }}
+        className="w-full"
+      >
+        <div className="flex flex-col bg-secondary px-3 pt-5 pb-3 rounded-2xl w-full border border-border shadow-sm transition-all duration-200 focus-within:border-input">
+          <TextareaAutosize
+            ref={inputRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            minRows={2}
+            className="px-2 bg-transparent placeholder:text-[15px] placeholder:text-muted-foreground text-sm text-foreground resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48"
+            placeholder="What crypto transaction do you want to do?"
+          />
+          <div className="flex flex-row items-center justify-end mt-4">
             <button
               disabled={message.trim().length === 0}
               className="bg-primary text-primary-foreground disabled:text-muted-foreground disabled:bg-muted hover:bg-primary/85 transition duration-100 rounded-full p-2"
@@ -82,8 +80,20 @@ const EmptyChatMessageInput = () => {
             </button>
           </div>
         </div>
+      </form>
+
+      <div className="flex flex-wrap gap-2 justify-center">
+        {quickActions.map((action) => (
+          <button
+            key={action.label}
+            onClick={() => handleQuickAction(action.prompt)}
+            className="px-4 py-2 bg-secondary hover:bg-secondary/80 border border-border rounded-full text-sm font-medium text-foreground transition-all duration-200 hover:scale-105 active:scale-95"
+          >
+            {action.label}
+          </button>
+        ))}
       </div>
-    </form>
+    </div>
   );
 };
 
