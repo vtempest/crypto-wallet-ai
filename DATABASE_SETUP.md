@@ -9,9 +9,14 @@ Failed query: select "id", "userId", "address", "chainId", "isPrimary", "created
 from "walletAddress" where ("walletAddress"."address" = ? and "walletAddress"."chainId" = ?)
 ```
 
-**The issue**: The `walletAddress` table migration hasn't been applied to your database yet.
+**The issue**: The `walletAddress` table doesn't exist in your database yet.
 
-**The solution**: Run the database migration (see below).
+**The solution**:
+1. Make sure you've installed dependencies: `npm install --legacy-peer-deps`
+2. Run the database migration: `npm run db:push`
+3. Restart your development server
+
+This will create all required tables including `walletAddress`.
 
 ---
 
@@ -29,7 +34,7 @@ This project uses **Turso** (cloud SQLite) for production and local SQLite for d
 
 #### Option A: Local Development (SQLite)
 
-No configuration needed! The database will be created automatically at `./data/db.sqlite`.
+The database will be created automatically at `./data/db.sqlite` when you first run the app. The `data/` directory will be created automatically if it doesn't exist.
 
 #### Option B: Production (Turso)
 
@@ -56,15 +61,14 @@ No configuration needed! The database will be created automatically at `./data/d
 
 ### 3. Apply Database Migrations
 
-**IMPORTANT**: This step creates all required tables including the `walletAddress` table needed for Web3 authentication.
+**CRITICAL STEP**: You MUST run this before starting the app. This creates all required tables including the `walletAddress` table needed for Web3 authentication.
 
 ```bash
-# Method 1: Push schema to database (recommended for initial setup)
+# Recommended: Push schema to database (works for both initial setup and updates)
 npm run db:push
-
-# Method 2: Generate and run migrations (for production)
-npm run db:migrate
 ```
+
+**Note**: If you skip this step and try to use Web3 authentication, you'll get a "walletAddress table doesn't exist" error.
 
 ### 4. Verify Setup
 
@@ -187,13 +191,26 @@ If you see migration number conflicts (e.g., two `0006_*.sql` files), the latest
 
 After setting up the database:
 
-1. Start the development server:
+1. **REQUIRED**: Apply database migrations (if you haven't already):
+   ```bash
+   npm run db:push
+   ```
+
+2. Start the development server:
    ```bash
    npm run dev
    ```
 
-2. Open http://localhost:3000
+3. Open http://localhost:3000
 
-3. Try signing in with MetaMask - the walletAddress error should be fixed!
+4. Try signing in with MetaMask - the walletAddress error should be fixed!
+
+## Common Issues
+
+**Error: "Failed query... walletAddress"**
+- You forgot to run `npm run db:push`. Run it now, then restart your dev server.
+
+**Error: "table walletAddress already exists"**
+- This is fine - it means migrations were already applied. Just restart your dev server.
 
 For more information about Web3 authentication, see the [better-auth SIWE plugin docs](https://www.better-auth.com/docs/plugins/siwe).
