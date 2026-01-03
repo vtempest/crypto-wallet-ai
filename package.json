@@ -106,6 +106,7 @@
     "tailwind-merge": "^3.4.0",
     "tldts": "^7.0.19",
     "vaul": "^1.1.2",
+    "viem": "^2.43.5",
     "winston": "^3.19.0",
     "yet-another-react-lightbox": "^3.28.0",
     "zod": "^4.3.4"

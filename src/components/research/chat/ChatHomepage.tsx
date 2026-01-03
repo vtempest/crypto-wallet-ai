@@ -1,14 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EmptyChatMessageInput from './EmptyChatMessageInput';
 import Footer, { defaultFooterLinks } from '@/components/layout/Footer';
 import SettingsButtonMobile from '@/components/Settings/SettingsButtonMobile';
 import MessageBoxLoading from './MessageBoxLoading';
 import UserMenu from '@/components/layout/UserMenu';
+import { WalletInfo } from '@/components/wallet/WalletInfo';
 
 const EmptyChat = ({ background }: { background?: string }) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [showWalletInfo, setShowWalletInfo] = useState(false);
+
+  // Check if user has a wallet connected
+  useEffect(() => {
+    fetch('/api/wallet/info')
+      .then(res => res.ok ? setShowWalletInfo(true) : setShowWalletInfo(false))
+      .catch(() => setShowWalletInfo(false));
+  }, []);
 
   return (
     <div className="relative min-h-screen w-full">
@@ -20,7 +29,7 @@ const EmptyChat = ({ background }: { background?: string }) => {
           <SettingsButtonMobile />
         </div>
         <div className="flex flex-col items-center justify-center min-h-screen max-w-screen-sm mx-auto px-4">
-          <div className="flex flex-col items-center justify-center w-full">
+          <div className="flex flex-col items-center justify-center w-full space-y-6">
             {/* <MessageBoxLoading /> */}
             <div className="relative w-full max-w-md group cursor-pointer" onClick={() => setIsVideoModalOpen(true)}>
               <img
@@ -41,6 +50,14 @@ const EmptyChat = ({ background }: { background?: string }) => {
                 </div>
               </div>
             </div>
+
+            {/* Show wallet info if connected */}
+            {showWalletInfo && (
+              <div className="w-full max-w-md">
+                <WalletInfo />
+              </div>
+            )}
+
             <EmptyChatMessageInput />
           </div>
         </div>

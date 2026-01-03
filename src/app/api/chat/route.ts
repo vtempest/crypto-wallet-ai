@@ -3,9 +3,9 @@ import { AIMessage, BaseMessage, HumanMessage } from '@langchain/core/messages';
 import { Document } from '@langchain/core/documents';
 import { EventEmitter } from 'stream';
 import { db } from '@/lib/db';
-import { chats, messages as messagesSchema } from '@/lib/db/schema';
+import { chats, messages as messagesSchema, walletAddresses } from '@/lib/db/schema';
 import { and, eq, gt } from 'drizzle-orm';
-import { searchHandlers } from '@/lib/research/search';
+import { searchHandlers, createSearchHandlers } from '@/lib/research/search';
 import { z } from 'zod';
 import ModelRegistry from '@/lib/research/models/registry';
 import { ModelWithProvider } from '@/lib/research/models/types';
@@ -269,7 +269,27 @@ export const POST = async (req: Request) => {
       }
     });
 
-    const handler = searchHandlers[body.focusMode];
+    // Get user's wallet info if authenticated and in ethereumWallet mode
+    let walletContext: { address: string; chainId: number } | undefined;
+    if (userId && body.focusMode === 'ethereumWallet') {
+      const userWallets = await db.query.walletAddresses.findMany({
+        where: eq(walletAddresses.userId, userId),
+      });
+
+      if (userWallets && userWallets.length > 0) {
+        // Use primary wallet or first wallet
+        const primaryWallet = userWallets.find(w => w.isPrimary) || userWallets[0];
+        walletContext = {
+          address: primaryWallet.address,
+          chainId: primaryWallet.chainId,
+        };
+        console.log('[POST /api/chat] Using wallet context:', walletContext);
+      }
+    }
+
+    // Use wallet-aware handlers if we have wallet context
+    const handlers = walletContext ? createSearchHandlers(walletContext) : searchHandlers;
+    const handler = handlers[body.focusMode];
 
     if (!handler) {
       return Response.json(
