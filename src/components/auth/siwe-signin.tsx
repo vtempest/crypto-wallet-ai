@@ -85,15 +85,12 @@ export function SiweSignIn() {
           const surveyResponse = await fetch('/api/user/check-survey')
           const surveyData = await surveyResponse.json()
 
-          if (surveyData.hasCompletedSurvey) {
-            router.push("/dashboard")
-          } else {
-            router.push("/survey")
-          }
+          router.push("/")
+
         } catch (error) {
           console.error("Error checking survey status:", error)
           // Default to dashboard if check fails
-          router.push("/dashboard")
+          router.push("/")
         }
       }
 
@@ -104,11 +101,11 @@ export function SiweSignIn() {
   }
 
   return (
-    <Button 
-      onClick={handleSiweSignIn} 
-      variant="outline" 
-      size="lg" 
-      className="w-full" 
+    <Button
+      onClick={handleSiweSignIn}
+      variant="outline"
+      size="lg"
+      className="w-full"
       disabled={isLoading}
     >
       {isLoading ? (
