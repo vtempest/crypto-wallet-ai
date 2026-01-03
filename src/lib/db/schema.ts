@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { text, integer, sqliteTable } from 'drizzle-orm/sqlite-core';
+import { text, integer, sqliteTable, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { Document } from '@langchain/core/documents';
 
 export const messages = sqliteTable('messages', {
@@ -60,11 +60,14 @@ export const user = sqliteTable('user', {
 export const walletAddresses = sqliteTable("walletAddress", {
   id: text("id").primaryKey(),
   userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
-  address: text("address").notNull().unique(),
+  address: text("address").notNull(),
   chainId: integer("chainId").notNull(),
   isPrimary: integer("isPrimary", { mode: "boolean" }).default(false),
   createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
-});
+}, (table) => ({
+  // Composite unique constraint: same address can exist on different chains
+  addressChainUnique: uniqueIndex("walletAddress_address_chainId_unique").on(table.address, table.chainId),
+}));
 
 // Better-auth required tables with consistent naming
 export const users = user;

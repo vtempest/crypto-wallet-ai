@@ -50,6 +50,20 @@
       "when": 1766459770635,
       "tag": "0006_tough_gideon",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1767406995882,
+      "tag": "0007_melodic_jasper_sitwell",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1767407019337,
+      "tag": "0008_elite_red_hulk",
+      "breakpoints": true
     }
   ]
 }

@@ -1,1 +1,2 @@
-/* Do nothing */
+-- Empty migration
+SELECT 1;
