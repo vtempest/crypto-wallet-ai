@@ -34,7 +34,7 @@ const bodySchema = z.object({
   optimizationMode: z.enum(['speed', 'balanced', 'quality'], {
     message: 'Optimization mode must be one of: speed, balanced, quality',
   }),
-  focusMode: z.string().min(1, 'Focus mode is required'),
+  focusMode: z.string().optional().default('ethereumWallet'), // Always use ethereumWallet mode
   history: z
     .array(
       z.tuple([z.string(), z.string()], {
@@ -269,9 +269,9 @@ export const POST = async (req: Request) => {
       }
     });
 
-    // Get user's wallet info if authenticated and in ethereumWallet mode
+    // Get user's wallet info if authenticated
     let walletContext: { address: string; chainId: number } | undefined;
-    if (userId && body.focusMode === 'ethereumWallet') {
+    if (userId) {
       const userWallets = await db.query.walletAddresses.findMany({
         where: eq(walletAddresses.userId, userId),
       });
@@ -287,18 +287,9 @@ export const POST = async (req: Request) => {
       }
     }
 
-    // Use wallet-aware handlers if we have wallet context
-    const handlers = walletContext ? createSearchHandlers(walletContext) : searchHandlers;
-    const handler = handlers[body.focusMode];
-
-    if (!handler) {
-      return Response.json(
-        {
-          message: 'Invalid focus mode',
-        },
-        { status: 400 },
-      );
-    }
+    // Always use ethereumWallet handler with wallet context if available
+    const handlers = createSearchHandlers(walletContext);
+    const handler = handlers.ethereumWallet;
 
     const stream = await handler.searchAndAnswer(
       message.content,
@@ -316,7 +307,7 @@ export const POST = async (req: Request) => {
     handleEmitterEvents(stream, writer, encoder, message.chatId, userId);
 
     console.log('[POST /api/chat] Awaiting handleHistorySave for chatId:', message.chatId);
-    await handleHistorySave(message, humanMessageId, body.focusMode, body.files, userId);
+    await handleHistorySave(message, humanMessageId, 'ethereumWallet', body.files, userId);
     console.log('[POST /api/chat] handleHistorySave completed, returning stream response');
 
     return new Response(responseStream.readable, {

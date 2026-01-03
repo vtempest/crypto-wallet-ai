@@ -326,7 +326,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [fileIds, setFileIds] = useState<string[]>([]);
 
-  const [focusMode, setFocusMode] = useState('webSearch');
+  const [focusMode, setFocusMode] = useState('ethereumWallet');
   const [category, setCategory] = useState('general');
   const [optimizationMode, setOptimizationMode] = useState('speed');
 
