@@ -239,6 +239,37 @@ class MetaSearchAgent implements MetaSearchAgentType {
         );
       }
 
+      // Handle tool results
+      if (
+        event.event === 'on_tool_end' &&
+        this.config.tools && this.config.tools.length > 0
+      ) {
+        const toolResult = event.data.output;
+        let formattedResult = '';
+
+        // Format the result for display
+        if (typeof toolResult === 'string') {
+          // Try to parse as JSON for prettier display
+          try {
+            const parsed = JSON.parse(toolResult);
+            formattedResult = `\`\`\`json\n${JSON.stringify(parsed, null, 2)}\n\`\`\``;
+          } catch {
+            // Not JSON, display as-is
+            formattedResult = toolResult;
+          }
+        } else {
+          formattedResult = `\`\`\`json\n${JSON.stringify(toolResult, null, 2)}\n\`\`\``;
+        }
+
+        emitter.emit(
+          'data',
+          JSON.stringify({
+            type: 'response',
+            data: `**Result:** ${formattedResult}\n\n`
+          }),
+        );
+      }
+
       // Handle end events
       if (
         event.event === 'on_chain_end' &&
