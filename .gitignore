@@ -9,6 +9,7 @@ out/
 dist/
 .vercel/
 .wrangler/
+*.tsbuildinfo
 
 # IDE/Editor specific
 .vscode/

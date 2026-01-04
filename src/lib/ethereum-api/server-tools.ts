@@ -45,7 +45,7 @@ export function getWalletAwareTools(walletContext: WalletContext): DynamicStruct
     new DynamicStructuredTool({
       name: 'getMyWalletBalance',
       description: `Get the ETH balance of your connected wallet (${walletContext.address}). Returns balance in ETH.`,
-      schema: z.union([z.object({}), z.null(), z.undefined()]).default({}),
+      schema: z.object({}),
       func: async () => {
         try {
           const balance = await publicClient.getBalance({
@@ -72,7 +72,7 @@ export function getWalletAwareTools(walletContext: WalletContext): DynamicStruct
     new DynamicStructuredTool({
       name: 'getMyTransactionCount',
       description: `Get the number of transactions sent from your wallet (${walletContext.address}). This is also known as the nonce.`,
-      schema: z.union([z.object({}), z.null(), z.undefined()]).default({}),
+      schema: z.object({}),
       func: async () => {
         try {
           const count = await publicClient.getTransactionCount({
@@ -91,7 +91,7 @@ export function getWalletAwareTools(walletContext: WalletContext): DynamicStruct
     new DynamicStructuredTool({
       name: 'getMyChainInfo',
       description: 'Get information about the blockchain network you are currently connected to',
-      schema: z.union([z.object({}), z.null(), z.undefined()]).default({}),
+      schema: z.object({}),
       func: async () => {
         try {
           const chainId = await publicClient.getChainId();
@@ -121,7 +121,7 @@ export function getWalletAwareTools(walletContext: WalletContext): DynamicStruct
     new DynamicStructuredTool({
       name: 'getCurrentGasPrice',
       description: 'Get the current gas price on the network in Gwei',
-      schema: z.union([z.object({}), z.null(), z.undefined()]).default({}),
+      schema: z.object({}),
       func: async () => {
         try {
           const gasPrice = await publicClient.getGasPrice();
@@ -217,7 +217,7 @@ export function getWalletAwareTools(walletContext: WalletContext): DynamicStruct
     new DynamicStructuredTool({
       name: 'getMyWalletSummary',
       description: 'Get a complete summary of your wallet including balance, transactions, and network info',
-      schema: z.union([z.object({}), z.null(), z.undefined()]).default({}),
+      schema: z.object({}),
       func: async () => {
         try {
           const [balance, txCount, chainId, blockNumber, gasPrice] = await Promise.all([
