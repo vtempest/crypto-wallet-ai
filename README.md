@@ -40,31 +40,46 @@ AI: *looks up transaction* "This transaction sent 1 ETH, confirmed in block 1823
    npm install --legacy-peer-deps
    ```
 
-2. **Setup Database** (REQUIRED)
+2. **Configure Environment Variables**
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env
+
+   # Edit .env and add your configuration
+   # At minimum, set BETTER_AUTH_SECRET (generate with: openssl rand -base64 32)
+   ```
+
+   **Optional - Enable MCP Servers:**
+   - To enable Composio (100+ app integrations), add `COMPOSIO_API_KEY` to .env
+   - Get your API key at https://composio.dev
+   - See [MCP Configuration Guide](MCP_CONFIGURATION.md) for details
+
+3. **Setup Database** (REQUIRED)
    ```bash
    npm run db:push
    ```
    This creates all required tables for authentication and wallet management.
 
-3. **Start the MCP Server** (Optional - for Ethereum tools)
+4. **Start the MCP Server** (Optional - for Ethereum tools)
    ```bash
    cd src/lib/ethereum-api/mcp-server
    npm install
    npm start
    ```
 
-4. **Start the Next.js App**
+5. **Start the Next.js App**
    ```bash
    npm run dev
    ```
 
-5. **Start Chatting!**
+6. **Start Chatting!**
    - Open http://localhost:3000
    - Sign in with Google or MetaMask
    - Ask Ethereum questions in natural language
    - The AI automatically uses the right tools
 
 📖 **See [Database Setup Guide](DATABASE_SETUP.md) for database configuration**
+📖 **See [MCP Configuration Guide](MCP_CONFIGURATION.md) for enabling external integrations**
 📖 **See [Quick Start Guide](src/lib/ethereum-api/QUICKSTART.md) for Ethereum tools setup**
 
 ---
