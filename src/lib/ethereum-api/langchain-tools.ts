@@ -1,92 +1,252 @@
 /**
- * LangChain Tools for Ethereum MCP Server
+ * LangChain Tools for Ethereum Blockchain
  *
- * This module converts MCP server tools into LangChain-compatible tools
- * that can be used by the chatbot agent.
+ * This module provides LangChain-compatible tools for Ethereum blockchain operations
+ * using viem for direct RPC calls.
  */
 
 import { z } from 'zod';
 import { DynamicStructuredTool } from '@langchain/core/tools';
-import { getEthereumMCPClient } from './mcp-client';
-import { toolConfigs } from './mcp-server/src/tools-config.js';
+import { createPublicClient, http, formatEther, Address, parseEther, toHex, fromHex, hexToBigInt } from 'viem';
+import { mainnet } from 'viem/chains';
 
 /**
- * Generate LangChain DynamicStructuredTools from MCP tool configurations
+ * Get RPC URL based on chain ID
+ */
+function getRpcUrl(chainId: number = 1) {
+  const rpcUrls: Record<number, string> = {
+    1: process.env.ETHEREUM_RPC_URL || 'https://eth.public-rpc.com',
+    137: process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com',
+    10: process.env.OPTIMISM_RPC_URL || 'https://mainnet.optimism.io',
+    42161: process.env.ARBITRUM_RPC_URL || 'https://arb1.arbitrum.io/rpc',
+  };
+
+  return rpcUrls[chainId] || rpcUrls[1];
+}
+
+/**
+ * Create a public client for blockchain interactions
+ */
+function createEthereumClient(chainId: number = 1) {
+  return createPublicClient({
+    chain: mainnet,
+    transport: http(getRpcUrl(chainId)),
+  });
+}
+
+/**
+ * Generate all Ethereum tools
  */
 export function generateEthereumTools(): DynamicStructuredTool[] {
-  const mcpClient = getEthereumMCPClient();
+  const publicClient = createEthereumClient();
 
   const tools: DynamicStructuredTool[] = [];
 
-  // Create a LangChain tool for each MCP tool
-  for (const toolConfig of toolConfigs) {
-    // Build Zod schema based on the tool configuration
-    const schemaFields: Record<string, any> = {};
-
-    // Add execution parameters (query params, path params)
-    if (toolConfig.executionParameters && toolConfig.executionParameters.length > 0) {
-      toolConfig.executionParameters.forEach((param: any) => {
-        // Determine the Zod type based on parameter name/context
-        if (param.name === 'address') {
-          schemaFields[param.name] = z.string().describe('Ethereum address (0x...)');
-        } else if (param.name.includes('hash') || param.name.includes('Hash')) {
-          schemaFields[param.name] = z.string().describe('Transaction or block hash (0x...)');
-        } else if (param.name.includes('block') || param.name.includes('Block')) {
-          schemaFields[param.name] = z.string().optional().describe('Block number or "latest"');
-        } else if (param.name.includes('count') || param.name.includes('Count')) {
-          schemaFields[param.name] = z.number().int().describe('Count value');
-        } else if (param.name === 'fullTransactions') {
-          schemaFields[param.name] = z.boolean().optional().describe('Return full transaction objects');
-        } else {
-          schemaFields[param.name] = z.string().optional().describe(param.name);
-        }
-      });
-    }
-
-    // Add requestBody if the tool accepts one
-    if (toolConfig.method.toLowerCase() !== 'get') {
-      schemaFields.requestBody = z.record(z.string(), z.unknown()).optional().describe('Request body parameters');
-    }
-
-    // If no fields were added, add a dummy field to prevent empty schema errors
-    if (Object.keys(schemaFields).length === 0) {
-      schemaFields._dummy = z.string().optional().describe('No parameters required');
-    }
-
-    const schema = z.object(schemaFields);
-
-    // Create the DynamicStructuredTool
-    const tool = new DynamicStructuredTool({
-      name: toolConfig.name,
-      description: `${toolConfig.description}. ${getToolExtraDescription(toolConfig.name)}`,
-      schema: schema,
-      func: async (params: Record<string, any>) => {
+  // ethGetBalance
+  tools.push(
+    new DynamicStructuredTool({
+      name: 'ethGetBalance',
+      description: 'Get the ETH balance of an address. Use this to check the ETH balance of an address',
+      schema: z.object({
+        address: z.string().describe('Ethereum address (0x...)'),
+      }),
+      func: async ({ address }) => {
         try {
-          // Remove dummy parameter if present
-          const { _dummy, ...cleanParams } = params;
-
-          const result = await mcpClient.callTool(toolConfig.name, cleanParams);
-
-          if (!result.ok) {
-            return `Error calling ${toolConfig.name}: ${result.error || 'Unknown error'}`;
-          }
-
-          // Format the response
-          if (typeof result.data === 'string') {
-            return result.data;
-          } else if (typeof result.data === 'object' && result.data !== null) {
-            return JSON.stringify(result.data, null, 2);
-          } else {
-            return String(result.data);
-          }
+          const balance = await publicClient.getBalance({
+            address: address as Address,
+          });
+          const balanceInEth = formatEther(balance);
+          return `Balance: ${balanceInEth} ETH (${balance.toString()} wei)`;
         } catch (error: any) {
-          return `Error executing ${toolConfig.name}: ${error.message}`;
+          return `Error getting balance: ${error.message}`;
         }
       },
-    });
+    })
+  );
 
-    tools.push(tool);
-  }
+  // ethGetTransactionByHash
+  tools.push(
+    new DynamicStructuredTool({
+      name: 'ethGetTransactionByHash',
+      description: 'Get details of a transaction by its hash. Use this to get details of a transaction by its hash',
+      schema: z.object({
+        hash: z.string().describe('Transaction hash (0x...)'),
+      }),
+      func: async ({ hash }) => {
+        try {
+          const tx = await publicClient.getTransaction({
+            hash: hash as `0x${string}`,
+          });
+
+          return JSON.stringify({
+            from: tx.from,
+            to: tx.to,
+            value: formatEther(tx.value) + ' ETH',
+            gas: tx.gas?.toString(),
+            gasPrice: tx.gasPrice ? formatEther(tx.gasPrice) + ' ETH' : 'N/A',
+            blockNumber: tx.blockNumber?.toString(),
+            blockHash: tx.blockHash,
+            status: tx.blockNumber ? 'confirmed' : 'pending',
+          }, null, 2);
+        } catch (error: any) {
+          return `Error getting transaction: ${error.message}`;
+        }
+      },
+    })
+  );
+
+  // ethGetTransactionReceipt
+  tools.push(
+    new DynamicStructuredTool({
+      name: 'ethGetTransactionReceipt',
+      description: 'Get the receipt of a transaction to check if it was successful. Use this to check if a transaction was successful and get its receipt',
+      schema: z.object({
+        hash: z.string().describe('Transaction hash (0x...)'),
+      }),
+      func: async ({ hash }) => {
+        try {
+          const receipt = await publicClient.getTransactionReceipt({
+            hash: hash as `0x${string}`,
+          });
+
+          return JSON.stringify({
+            status: receipt.status === 'success' ? 'Success' : 'Failed',
+            blockNumber: receipt.blockNumber.toString(),
+            gasUsed: receipt.gasUsed.toString(),
+            effectiveGasPrice: formatEther(receipt.effectiveGasPrice) + ' ETH',
+            from: receipt.from,
+            to: receipt.to,
+            contractAddress: receipt.contractAddress,
+          }, null, 2);
+        } catch (error: any) {
+          return `Error getting receipt: ${error.message}`;
+        }
+      },
+    })
+  );
+
+  // ethChainId
+  tools.push(
+    new DynamicStructuredTool({
+      name: 'ethChainId',
+      description: 'Get the current chain ID the wallet is connected to. Use this to get the current chain ID the wallet is connected to',
+      schema: z.object({}),
+      func: async () => {
+        try {
+          const chainId = await publicClient.getChainId();
+          const chainNames: Record<number, string> = {
+            1: 'Ethereum Mainnet',
+            137: 'Polygon',
+            10: 'Optimism',
+            42161: 'Arbitrum One',
+          };
+          return `Chain ID: ${chainId} (${chainNames[chainId] || `Chain ${chainId}`})`;
+        } catch (error: any) {
+          return `Error getting chain ID: ${error.message}`;
+        }
+      },
+    })
+  );
+
+  // ethBlockNumber
+  tools.push(
+    new DynamicStructuredTool({
+      name: 'ethBlockNumber',
+      description: 'Get the latest block number. Use this to get the latest block number',
+      schema: z.object({}),
+      func: async () => {
+        try {
+          const blockNumber = await publicClient.getBlockNumber();
+          return `Latest block number: ${blockNumber.toString()}`;
+        } catch (error: any) {
+          return `Error getting block number: ${error.message}`;
+        }
+      },
+    })
+  );
+
+  // ethGasPrice
+  tools.push(
+    new DynamicStructuredTool({
+      name: 'ethGasPrice',
+      description: 'Get the current gas price. Use this to get the current gas price',
+      schema: z.object({}),
+      func: async () => {
+        try {
+          const gasPrice = await publicClient.getGasPrice();
+          const gasPriceGwei = Number(gasPrice) / 1e9;
+          return `Current gas price: ${gasPriceGwei.toFixed(2)} Gwei (${gasPrice.toString()} wei)`;
+        } catch (error: any) {
+          return `Error getting gas price: ${error.message}`;
+        }
+      },
+    })
+  );
+
+  // ethEstimateGas
+  tools.push(
+    new DynamicStructuredTool({
+      name: 'ethEstimateGas',
+      description: 'Estimate gas for a transaction before sending it. Use this to estimate gas for a transaction before sending it',
+      schema: z.object({
+        from: z.string().describe('From address (0x...)'),
+        to: z.string().describe('To address (0x...)'),
+        value: z.string().optional().describe('Value to send in ETH (e.g., "0.1")'),
+        data: z.string().optional().describe('Transaction data (0x...)'),
+      }),
+      func: async ({ from, to, value, data }) => {
+        try {
+          const estimateParams: any = {
+            account: from as Address,
+            to: to as Address,
+          };
+
+          if (value) {
+            estimateParams.value = parseEther(value);
+          }
+
+          if (data) {
+            estimateParams.data = data as `0x${string}`;
+          }
+
+          const gasEstimate = await publicClient.estimateGas(estimateParams);
+          return `Estimated gas: ${gasEstimate.toString()} units`;
+        } catch (error: any) {
+          return `Error estimating gas: ${error.message}`;
+        }
+      },
+    })
+  );
+
+  // ethCall
+  tools.push(
+    new DynamicStructuredTool({
+      name: 'ethCall',
+      description: 'Call a smart contract function without sending a transaction. Use this to call a smart contract function without sending a transaction',
+      schema: z.object({
+        to: z.string().describe('Contract address (0x...)'),
+        data: z.string().describe('Encoded function call data (0x...)'),
+        from: z.string().optional().describe('From address (0x...)'),
+      }),
+      func: async ({ to, data, from }) => {
+        try {
+          const callParams: any = {
+            to: to as Address,
+            data: data as `0x${string}`,
+          };
+
+          if (from) {
+            callParams.account = from as Address;
+          }
+
+          const result = await publicClient.call(callParams);
+          return `Call result: ${result.data || 'No data returned'}`;
+        } catch (error: any) {
+          return `Error calling contract: ${error.message}`;
+        }
+      },
+    })
+  );
 
   return tools;
 }
@@ -96,23 +256,14 @@ export function generateEthereumTools(): DynamicStructuredTool[] {
  */
 function getToolExtraDescription(toolName: string): string {
   const descriptions: Record<string, string> = {
-    ethRequestAccounts: 'Use this to request access to user Ethereum accounts',
-    ethAccounts: 'Use this to get the list of accounts the user has connected',
     ethGetBalance: 'Use this to check the ETH balance of an address',
-    ethSendTransaction: 'Use this to send a transaction (requires user approval)',
     ethGetTransactionByHash: 'Use this to get details of a transaction by its hash',
     ethGetTransactionReceipt: 'Use this to check if a transaction was successful and get its receipt',
     ethChainId: 'Use this to get the current chain ID the wallet is connected to',
     ethBlockNumber: 'Use this to get the latest block number',
     ethGasPrice: 'Use this to get the current gas price',
     ethEstimateGas: 'Use this to estimate gas for a transaction before sending it',
-    personalSign: 'Use this to request the user to sign a message',
-    ethSignTypedDataV4: 'Use this to request the user to sign structured data (EIP-712)',
-    walletSwitchEthereumChain: 'Use this to switch to a different Ethereum network',
-    walletAddEthereumChain: 'Use this to add a new network to the user wallet',
     ethCall: 'Use this to call a smart contract function without sending a transaction',
-    ethGetCode: 'Use this to get the bytecode of a smart contract',
-    ethGetLogs: 'Use this to query event logs from smart contracts',
   };
 
   return descriptions[toolName] || '';
@@ -126,18 +277,13 @@ export function generateCommonEthereumTools(): DynamicStructuredTool[] {
   const allTools = generateEthereumTools();
 
   const commonToolNames = [
-    'ethRequestAccounts',
-    'ethAccounts',
     'ethGetBalance',
-    'ethSendTransaction',
     'ethGetTransactionByHash',
     'ethGetTransactionReceipt',
     'ethChainId',
     'ethBlockNumber',
     'ethGasPrice',
     'ethEstimateGas',
-    'personalSign',
-    'walletSwitchEthereumChain',
     'ethCall',
   ];
 
@@ -148,44 +294,12 @@ export function generateCommonEthereumTools(): DynamicStructuredTool[] {
  * Generate tools for wallet-specific operations
  */
 export function generateWalletTools(): DynamicStructuredTool[] {
-  const allTools = generateEthereumTools();
-
-  const walletToolNames = [
-    'ethRequestAccounts',
-    'ethAccounts',
-    'ethGetBalance',
-    'ethSendTransaction',
-    'personalSign',
-    'ethSignTypedDataV4',
-    'walletSwitchEthereumChain',
-    'walletAddEthereumChain',
-    'walletGetPermissions',
-    'walletRequestPermissions',
-  ];
-
-  return allTools.filter(tool => walletToolNames.includes(tool.name));
+  return generateCommonEthereumTools();
 }
 
 /**
  * Generate tools for blockchain data queries
  */
 export function generateBlockchainQueryTools(): DynamicStructuredTool[] {
-  const allTools = generateEthereumTools();
-
-  const queryToolNames = [
-    'ethChainId',
-    'ethBlockNumber',
-    'ethGasPrice',
-    'ethGetBalance',
-    'ethGetTransactionByHash',
-    'ethGetTransactionReceipt',
-    'ethGetBlockByNumber',
-    'ethGetBlockByHash',
-    'ethGetLogs',
-    'ethCall',
-    'ethGetCode',
-    'ethGetStorageAt',
-  ];
-
-  return allTools.filter(tool => queryToolNames.includes(tool.name));
+  return generateEthereumTools();
 }
