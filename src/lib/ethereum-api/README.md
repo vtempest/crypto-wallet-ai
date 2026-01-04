@@ -66,7 +66,25 @@ The server will start on `http://localhost:3000` with:
 
 ### 2. Configure Environment Variables
 
-Create a `.env` file in the `mcp-server` directory:
+Create a `.env` file in the project root directory:
+
+```env
+# Blockchain RPC Endpoints
+ETHEREUM_RPC_URL=https://rpc.ankr.com/multichain/YOUR_API_KEY
+POLYGON_RPC_URL=https://rpc.ankr.com/polygon/YOUR_API_KEY (optional)
+OPTIMISM_RPC_URL=https://rpc.ankr.com/optimism/YOUR_API_KEY (optional)
+ARBITRUM_RPC_URL=https://rpc.ankr.com/arbitrum/YOUR_API_KEY (optional)
+```
+
+**Getting an Ankr API Key:**
+1. Visit [https://www.ankr.com/rpc/](https://www.ankr.com/rpc/)
+2. Sign up for a free account
+3. Copy your RPC endpoint URL
+4. Add it to your `.env` file
+
+The Ethereum tools will use these RPC endpoints to interact with the blockchain. If not specified, they will fall back to public RPC endpoints (which may have rate limits).
+
+For the MCP server, create a `.env` file in the `mcp-server` directory:
 
 ```env
 PORT=3000
