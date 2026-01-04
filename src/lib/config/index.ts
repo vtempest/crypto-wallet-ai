@@ -232,6 +232,7 @@ class ConfigManager {
       const tempConfig: Record<string, any> = {};
       const required: string[] = [];
       const missingFields: string[] = [];
+      const invalidFields: string[] = [];
 
       server.fields.forEach((field) => {
         tempConfig[field.key] =
@@ -245,9 +246,19 @@ class ConfigManager {
       let configured = true;
 
       required.forEach((r) => {
-        if (!tempConfig[r]) {
+        const value = tempConfig[r];
+        if (!value) {
           configured = false;
           missingFields.push(r);
+        } else if (
+          // Check for common placeholder values that should be treated as invalid
+          value.includes('your_') ||
+          value.includes('_here') ||
+          value === 'your-secret-key-here' ||
+          value === 'your-api-key-here'
+        ) {
+          configured = false;
+          invalidFields.push(r);
         }
       });
 
@@ -270,7 +281,16 @@ class ConfigManager {
         };
 
         if (!configured) {
-          console.log(`[ConfigManager] MCP server "${server.name}" is disabled due to missing required fields: ${missingFields.join(', ')}`);
+          const reasons: string[] = [];
+          if (missingFields.length > 0) {
+            reasons.push(`missing fields: ${missingFields.join(', ')}`);
+          }
+          if (invalidFields.length > 0) {
+            reasons.push(`placeholder values detected in: ${invalidFields.join(', ')}`);
+          }
+          console.log(`[ConfigManager] MCP server "${server.name}" is disabled - ${reasons.join('; ')}`);
+        } else {
+          console.log(`[ConfigManager] MCP server "${server.name}" is enabled and will attempt to connect`);
         }
 
         newMCPServers.push(newMCPServer);
