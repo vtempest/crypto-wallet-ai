@@ -4,10 +4,11 @@ import TextareaAutosize from 'react-textarea-autosize';
 import { useChat } from '@/lib/hooks/useChat';
 
 const quickActions = [
-  { label: 'Send', prompt: 'I want to send crypto to another wallet' },
-  { label: 'Receive', prompt: 'I want to receive crypto in my wallet' },
-  { label: 'Deposit', prompt: 'I want to deposit crypto' },
-  { label: 'Check Balances', prompt: 'Show me my wallet balances' },
+  { label: 'Check Balance', prompt: 'Show me my wallet balance' },
+  { label: 'Wallet Summary', prompt: 'Show me my complete wallet summary' },
+  { label: 'Gas Prices', prompt: 'What are the current gas prices?' },
+  { label: 'Transaction Count', prompt: 'How many transactions has my wallet sent?' },
+  { label: 'Chain Info', prompt: 'What network am I connected to?' },
 ];
 
 const EmptyChatMessageInput = () => {
