@@ -52,7 +52,14 @@ export function getWalletAwareTools(walletContext: WalletContext): DynamicStruct
             address: walletContext.address as Address,
           });
           const balanceInEth = formatEther(balance);
-          return `Your wallet balance: ${balanceInEth} ETH`;
+
+          // Return structured data for better formatting by AI
+          return JSON.stringify({
+            address: walletContext.address,
+            balance: balanceInEth,
+            balanceFormatted: `${parseFloat(balanceInEth).toFixed(4)} ETH`,
+            chainId: walletContext.chainId,
+          });
         } catch (error: any) {
           return `Error getting balance: ${error.message}`;
         }
