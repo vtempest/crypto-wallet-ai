@@ -5,7 +5,7 @@ import { EventEmitter } from 'stream';
 import { db } from '@/lib/db';
 import { chats, messages as messagesSchema, walletAddresses } from '@/lib/db/schema';
 import { and, eq, gt } from 'drizzle-orm';
-import { searchHandlers, createSearchHandlers } from '@/lib/research/search';
+import { createSearchHandlers } from '@/lib/research/search';
 import { z } from 'zod';
 import ModelRegistry from '@/lib/research/models/registry';
 import { ModelWithProvider } from '@/lib/research/models/types';
@@ -288,7 +288,8 @@ export const POST = async (req: Request) => {
     }
 
     // Always use ethereumWallet handler with wallet context if available
-    const handlers = createSearchHandlers(walletContext);
+    // Now loads tools from enabled MCP servers
+    const handlers = await createSearchHandlers(walletContext);
     const handler = handlers.ethereumWallet;
 
     const stream = await handler.searchAndAnswer(
