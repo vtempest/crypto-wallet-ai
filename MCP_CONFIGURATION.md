@@ -4,6 +4,33 @@
 
 Model Context Protocol (MCP) servers extend the AI chatbot's capabilities by providing additional tools and integrations. The wallet chat AI can connect to MCP servers to access external services and APIs.
 
+## Quick Enable
+
+To enable MCP servers:
+
+1. **Copy the environment template:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Add your API keys to `.env`:**
+   ```bash
+   # For Composio (100+ app integrations)
+   COMPOSIO_API_KEY=your_api_key_here
+   ```
+
+3. **Restart your application:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Verify in logs:**
+   ```
+   [loadMCPServerTools] Found 1 total MCP servers (1 enabled, 0 disabled)
+   [loadMCPServerTools] Loading tools from MCP server: Composio (composio)
+   [ComposioMCPServer] Connected successfully. Loaded X tools
+   ```
+
 ## Available MCP Servers
 
 ### Composio MCP Server
