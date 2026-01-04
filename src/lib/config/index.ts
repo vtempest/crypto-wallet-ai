@@ -231,6 +231,7 @@ class ConfigManager {
     mcpServerConfigSections.forEach((server) => {
       const tempConfig: Record<string, any> = {};
       const required: string[] = [];
+      const missingFields: string[] = [];
 
       server.fields.forEach((field) => {
         tempConfig[field.key] =
@@ -246,29 +247,33 @@ class ConfigManager {
       required.forEach((r) => {
         if (!tempConfig[r]) {
           configured = false;
+          missingFields.push(r);
         }
       });
 
-      if (configured) {
-        const hash = hashObj(tempConfig);
+      // Always add the MCP server to the config, but set enabled based on configuration
+      const hash = hashObj({ ...tempConfig, serverKey: server.key });
 
-        // Use hash as ID for deterministic MCP server IDs
-        const exists = this.currentConfig.mcpServers.find(
-          (s) => s.hash === hash,
-        );
+      // Use hash as ID for deterministic MCP server IDs
+      const exists = this.currentConfig.mcpServers.find(
+        (s) => s.hash === hash,
+      );
 
-        if (!exists) {
-          const newMCPServer: MCPServerConfig = {
-            id: hash,
-            name: `${server.name}`,
-            type: server.key,
-            config: tempConfig,
-            enabled: true,
-            hash: hash,
-          };
+      if (!exists) {
+        const newMCPServer: MCPServerConfig = {
+          id: hash,
+          name: `${server.name}`,
+          type: server.key,
+          config: tempConfig,
+          enabled: configured, // Enable only if all required fields are configured
+          hash: hash,
+        };
 
-          newMCPServers.push(newMCPServer);
+        if (!configured) {
+          console.log(`[ConfigManager] MCP server "${server.name}" is disabled due to missing required fields: ${missingFields.join(', ')}`);
         }
+
+        newMCPServers.push(newMCPServer);
       }
     });
 
