@@ -128,18 +128,6 @@ export function WalletInfo() {
             </div>
           </div>
         )}
-
-        <div className="pt-2 border-t">
-          <p className="text-xs text-muted-foreground">
-            You can now use the <strong>Ethereum Wallet</strong> focus mode to:
-          </p>
-          <ul className="text-xs text-muted-foreground mt-2 space-y-1 list-disc list-inside">
-            <li>Check your wallet balance</li>
-            <li>View transaction history</li>
-            <li>Get blockchain data</li>
-            <li>Interact with your wallet through natural language</li>
-          </ul>
-        </div>
       </CardContent>
     </Card>
   );
