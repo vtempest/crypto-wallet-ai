@@ -15,8 +15,6 @@ import Markdown, { MarkdownToJSX } from 'markdown-to-jsx';
 import Copy from '../MessageActions/Copy';
 import Rewrite from '../MessageActions/Rewrite';
 import MessageSources from '../web-search/MessageSources';
-import SearchImages from '../web-search/SearchImages';
-import SearchVideos from '../web-search/SearchVideos';
 import { useSpeech } from 'react-text-to-speech';
 import ThinkBox from './ThinkBox';
 import { useChat, Section } from '@/lib/hooks/useChat';
@@ -92,25 +90,6 @@ const MessageBox = ({
                 <MessageSources sources={section.sourceMessage.sources} />
               </div>
             )}
-
-          {section.assistantMessage && (
-            <div className="flex flex-col lg:flex-row gap-3 w-full">
-              <div className="w-full lg:w-1/2">
-                <SearchImages
-                  query={section.userMessage.content}
-                  chatHistory={chatTurns.slice(0, sectionIndex * 2)}
-                  messageId={section.assistantMessage.messageId}
-                />
-              </div>
-              <div className="w-full lg:w-1/2">
-                <SearchVideos
-                  chatHistory={chatTurns.slice(0, sectionIndex * 2)}
-                  query={section.userMessage.content}
-                  messageId={section.assistantMessage.messageId}
-                />
-              </div>
-            </div>
-          )}
 
           <div className="flex flex-col space-y-2">
             {section.sourceMessage && (
