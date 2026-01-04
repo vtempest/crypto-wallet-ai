@@ -98,22 +98,21 @@ class MetaSearchAgent implements MetaSearchAgentType {
     }
 
     // Default chain without tools (original implementation)
+    // Pre-format the system prompt with template variables
+    const currentDate = new Date().toISOString();
+    const context = ''; // Web search is disabled
+    const formattedSystemPrompt = this.config.responsePrompt
+      .replace('{systemInstructions}', systemInstructions || '')
+      .replace('{date}', currentDate)
+      .replace('{context}', context);
+
     return RunnableSequence.from([
       RunnableMap.from({
-        systemInstructions: () => systemInstructions,
         query: (input: BasicChainInput) => input.query,
         chat_history: (input: BasicChainInput) => input.chat_history,
-        date: () => new Date().toISOString(),
-        context: RunnableLambda.from(async (input: BasicChainInput) => {
-          // Web search is disabled - return empty context
-          return '';
-        })
-          .withConfig({
-            runName: 'FinalSourceRetriever',
-          }),
       }),
       ChatPromptTemplate.fromMessages([
-        ['system', this.config.responsePrompt],
+        ['system', formattedSystemPrompt],
         new MessagesPlaceholder('chat_history'),
         ['user', '{query}'],
       ]),
