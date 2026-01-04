@@ -72,8 +72,13 @@ class MetaSearchAgent implements MetaSearchAgentType {
   ) {
     // If tools are provided, use agent executor
     if (this.config.tools && this.config.tools.length > 0) {
+      // Build system prompt with optional user instructions
+      const systemPrompt = systemInstructions && systemInstructions.trim().length > 0
+        ? `${this.config.responsePrompt}\n\nAdditional Instructions:\n${systemInstructions}`
+        : this.config.responsePrompt;
+
       const prompt = ChatPromptTemplate.fromMessages([
-        ['system', this.config.responsePrompt],
+        ['system', systemPrompt],
         new MessagesPlaceholder('chat_history'),
         ['user', '{query}'],
         new MessagesPlaceholder('agent_scratchpad'),
