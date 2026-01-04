@@ -6,7 +6,7 @@
  */
 
 import { DynamicStructuredTool } from '@langchain/core/tools';
-import { getEnabledMCPServers } from '@/lib/config/serverRegistry';
+import { getEnabledMCPServers, getConfiguredMCPServers } from '@/lib/config/serverRegistry';
 import { MCPServerConfig } from '@/lib/config/types';
 import { getMCPServerByKey, BaseMCPServer } from './index';
 import { createMCPServerInstance } from './baseMCPServer';
@@ -16,11 +16,18 @@ import { createMCPServerInstance } from './baseMCPServer';
  * @returns Array of LangChain-compatible tools from all enabled MCP servers
  */
 export async function loadMCPServerTools(): Promise<DynamicStructuredTool[]> {
+  const allServers = getConfiguredMCPServers();
   const enabledServers = getEnabledMCPServers();
+  const disabledServers = allServers.filter(s => !s.enabled);
 
-  console.log(`[loadMCPServerTools] Found ${enabledServers.length} enabled MCP servers`);
+  console.log(`[loadMCPServerTools] Found ${allServers.length} total MCP servers (${enabledServers.length} enabled, ${disabledServers.length} disabled)`);
+
+  if (disabledServers.length > 0) {
+    console.log(`[loadMCPServerTools] Disabled servers: ${disabledServers.map(s => s.name).join(', ')}`);
+  }
 
   if (enabledServers.length === 0) {
+    console.log('[loadMCPServerTools] No enabled MCP servers found. Check environment variables and configuration.');
     return [];
   }
 
