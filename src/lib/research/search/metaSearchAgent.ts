@@ -72,10 +72,15 @@ class MetaSearchAgent implements MetaSearchAgentType {
   ) {
     // If tools are provided, use agent executor
     if (this.config.tools && this.config.tools.length > 0) {
-      // Build system prompt with optional user instructions
-      const systemPrompt = systemInstructions && systemInstructions.trim().length > 0
-        ? `${this.config.responsePrompt}\n\nAdditional Instructions:\n${systemInstructions}`
-        : this.config.responsePrompt;
+      // Pre-format the system prompt with template variables
+      const currentDate = new Date().toISOString();
+      const context = ''; // Web search is disabled
+
+      // Replace all template variables in the prompt
+      const systemPrompt = this.config.responsePrompt
+        .replace('{systemInstructions}', systemInstructions || '')
+        .replace('{date}', currentDate)
+        .replace('{context}', context);
 
       const prompt = ChatPromptTemplate.fromMessages([
         ['system', systemPrompt],
