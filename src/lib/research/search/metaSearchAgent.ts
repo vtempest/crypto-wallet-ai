@@ -77,8 +77,15 @@ class MetaSearchAgent implements MetaSearchAgentType {
         ? `${this.config.responsePrompt}\n\nAdditional Instructions:\n${systemInstructions}`
         : this.config.responsePrompt;
 
+      const currentDate = new Date().toISOString();
+      const context = ''; // Web search is disabled
+      const formattedSystemPrompt = this.config.responsePrompt
+        .replace('{systemInstructions}', systemInstructions || '')
+        .replace('{date}', currentDate)
+        .replace('{context}', context);
+
       const prompt = ChatPromptTemplate.fromMessages([
-        ['system', systemPrompt],
+        ['system', formattedSystemPrompt],
         new MessagesPlaceholder('chat_history'),
         ['user', '{query}'],
         new MessagesPlaceholder('agent_scratchpad'),

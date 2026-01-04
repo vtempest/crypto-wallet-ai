@@ -298,14 +298,14 @@ export const chatContext = createContext<ChatContext>({
   notFound: false,
   optimizationMode: '',
   chatModelProvider: { key: '', providerId: '' },
-  rewrite: () => {},
-  sendMessage: async () => {},
-  setFileIds: () => {},
-  setFiles: () => {},
-  setFocusMode: () => {},
-  setCategory: () => {},
-  setOptimizationMode: () => {},
-  setChatModelProvider: () => {},
+  rewrite: () => { },
+  sendMessage: async () => { },
+  setFileIds: () => { },
+  setFiles: () => { },
+  setFocusMode: () => { },
+  setCategory: () => { },
+  setOptimizationMode: () => { },
+  setChatModelProvider: () => { },
 });
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
@@ -752,7 +752,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
           key: chatModelProvider.key,
           providerId: chatModelProvider.providerId,
         },
-        systemInstructions: localStorage.getItem('systemInstructions'),
+        systemInstructions: localStorage.getItem('systemInstructions') || ' ',
       }),
     });
 
