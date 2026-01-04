@@ -1,0 +1,565 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Crypto Wallet AI API",
+    "description": "AI Chatbot Agent API for Crypto Wallets with Ethereum integration and MCP tools",
+    "version": "2.0.0",
+    "contact": {
+      "name": "vtempest",
+      "url": "https://github.com/vtempest/crypto-wallet-ai"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://rights.institute/prosper"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "API Server"
+    }
+  ],
+  "paths": {
+    "/chat": {
+      "post": {
+        "summary": "Chat with AI",
+        "description": "Send a message to the AI chatbot with Ethereum wallet context",
+        "tags": ["Chat"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["message", "optimizationMode", "chatModel"],
+                "properties": {
+                  "message": {
+                    "type": "object",
+                    "required": ["messageId", "chatId", "content"],
+                    "properties": {
+                      "messageId": { "type": "string" },
+                      "chatId": { "type": "string" },
+                      "content": { "type": "string" }
+                    }
+                  },
+                  "optimizationMode": {
+                    "type": "string",
+                    "enum": ["speed", "balanced", "quality"]
+                  },
+                  "focusMode": {
+                    "type": "string",
+                    "default": "ethereumWallet"
+                  },
+                  "history": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
+                  "chatModel": {
+                    "type": "object",
+                    "required": ["providerId", "key"],
+                    "properties": {
+                      "providerId": { "type": "string" },
+                      "key": { "type": "string" }
+                    }
+                  },
+                  "systemInstructions": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Streaming chat response",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chats": {
+      "get": {
+        "summary": "Get user's chats",
+        "description": "Retrieve all chats for the authenticated user",
+        "tags": ["Chats"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of chats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "chats": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Chat"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chats/{id}": {
+      "get": {
+        "summary": "Get chat by ID",
+        "description": "Retrieve a specific chat with its messages",
+        "tags": ["Chats"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chat details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chat"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete chat",
+        "description": "Delete a specific chat",
+        "tags": ["Chats"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chat deleted successfully"
+          }
+        }
+      }
+    },
+    "/wallet/info": {
+      "get": {
+        "summary": "Get wallet info",
+        "description": "Get the user's primary wallet address and chain information",
+        "tags": ["Wallet"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Wallet information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "address": { "type": "string" },
+                    "chainId": { "type": "number" },
+                    "wallets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "address": { "type": "string" },
+                          "chainId": { "type": "number" },
+                          "isPrimary": { "type": "boolean" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "No wallet found"
+          }
+        }
+      }
+    },
+    "/providers": {
+      "get": {
+        "summary": "Get AI providers",
+        "description": "List all available AI model providers",
+        "tags": ["Providers"],
+        "responses": {
+          "200": {
+            "description": "List of providers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Provider"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/providers/{id}": {
+      "get": {
+        "summary": "Get provider by ID",
+        "description": "Get details of a specific AI provider",
+        "tags": ["Providers"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Provider details"
+          }
+        }
+      }
+    },
+    "/providers/{id}/models": {
+      "get": {
+        "summary": "Get provider models",
+        "description": "Get available models for a specific provider",
+        "tags": ["Providers"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of models"
+          }
+        }
+      }
+    },
+    "/mcpservers": {
+      "get": {
+        "summary": "Get MCP servers",
+        "description": "List all Model Context Protocol (MCP) servers",
+        "tags": ["MCP"],
+        "responses": {
+          "200": {
+            "description": "List of MCP servers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MCPServer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcpservers/{id}": {
+      "get": {
+        "summary": "Get MCP server by ID",
+        "description": "Get details of a specific MCP server",
+        "tags": ["MCP"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server details"
+          }
+        }
+      }
+    },
+    "/mcpservers/{id}/toggle": {
+      "post": {
+        "summary": "Toggle MCP server",
+        "description": "Enable or disable a specific MCP server",
+        "tags": ["MCP"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MCP server toggled successfully"
+          }
+        }
+      }
+    },
+    "/config": {
+      "get": {
+        "summary": "Get configuration",
+        "description": "Get application configuration",
+        "tags": ["Config"],
+        "responses": {
+          "200": {
+            "description": "Configuration data"
+          }
+        }
+      }
+    },
+    "/config/setup-complete": {
+      "get": {
+        "summary": "Check setup status",
+        "description": "Check if initial setup is complete",
+        "tags": ["Config"],
+        "responses": {
+          "200": {
+            "description": "Setup status"
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Search",
+        "description": "Perform a search query",
+        "tags": ["Search"],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results"
+          }
+        }
+      }
+    },
+    "/suggestions": {
+      "post": {
+        "summary": "Get suggestions",
+        "description": "Get AI-powered suggestions",
+        "tags": ["AI"],
+        "responses": {
+          "200": {
+            "description": "Suggestions"
+          }
+        }
+      }
+    },
+    "/article": {
+      "post": {
+        "summary": "Process article",
+        "description": "Process and analyze an article",
+        "tags": ["Content"],
+        "responses": {
+          "200": {
+            "description": "Article analysis"
+          }
+        }
+      }
+    },
+    "/images": {
+      "get": {
+        "summary": "Search images",
+        "description": "Search for images",
+        "tags": ["Content"],
+        "responses": {
+          "200": {
+            "description": "Image results"
+          }
+        }
+      }
+    },
+    "/videos": {
+      "get": {
+        "summary": "Search videos",
+        "description": "Search for videos",
+        "tags": ["Content"],
+        "responses": {
+          "200": {
+            "description": "Video results"
+          }
+        }
+      }
+    },
+    "/discover": {
+      "get": {
+        "summary": "Discover content",
+        "description": "Discover trending content",
+        "tags": ["Content"],
+        "responses": {
+          "200": {
+            "description": "Discovered content"
+          }
+        }
+      }
+    },
+    "/favorites": {
+      "get": {
+        "summary": "Get favorites",
+        "description": "Get user's favorite items",
+        "tags": ["User"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of favorites"
+          }
+        }
+      }
+    },
+    "/weather": {
+      "get": {
+        "summary": "Get weather",
+        "description": "Get weather information",
+        "tags": ["Utilities"],
+        "responses": {
+          "200": {
+            "description": "Weather data"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "error": { "type": "object" }
+        }
+      },
+      "Chat": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "createdAt": { "type": "string" },
+          "focusMode": { "type": "string" },
+          "userId": { "type": "string" }
+        }
+      },
+      "Provider": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      },
+      "MCPServer": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "enabled": { "type": "boolean" }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    { "name": "Chat", "description": "AI Chat operations" },
+    { "name": "Chats", "description": "Chat history management" },
+    { "name": "Wallet", "description": "Ethereum wallet operations" },
+    { "name": "Providers", "description": "AI model providers" },
+    { "name": "MCP", "description": "Model Context Protocol servers" },
+    { "name": "Config", "description": "Configuration management" },
+    { "name": "Search", "description": "Search functionality" },
+    { "name": "AI", "description": "AI-powered features" },
+    { "name": "Content", "description": "Content processing" },
+    { "name": "User", "description": "User data" },
+    { "name": "Utilities", "description": "Utility endpoints" }
+  ]
+}
