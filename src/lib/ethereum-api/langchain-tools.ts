@@ -130,7 +130,7 @@ export function generateEthereumTools(): DynamicStructuredTool[] {
     new DynamicStructuredTool({
       name: 'ethChainId',
       description: 'Get the current chain ID the wallet is connected to. Use this to get the current chain ID the wallet is connected to',
-      schema: z.union([z.object({}), z.null(), z.undefined()]).default({}),
+      schema: z.object({}),
       func: async () => {
         try {
           const chainId = await publicClient.getChainId();
@@ -153,7 +153,7 @@ export function generateEthereumTools(): DynamicStructuredTool[] {
     new DynamicStructuredTool({
       name: 'ethBlockNumber',
       description: 'Get the latest block number. Use this to get the latest block number',
-      schema: z.union([z.object({}), z.null(), z.undefined()]).default({}),
+      schema: z.object({}),
       func: async () => {
         try {
           const blockNumber = await publicClient.getBlockNumber();
@@ -170,7 +170,7 @@ export function generateEthereumTools(): DynamicStructuredTool[] {
     new DynamicStructuredTool({
       name: 'ethGasPrice',
       description: 'Get the current gas price. Use this to get the current gas price',
-      schema: z.union([z.object({}), z.null(), z.undefined()]).default({}),
+      schema: z.object({}),
       func: async () => {
         try {
           const gasPrice = await publicClient.getGasPrice();
