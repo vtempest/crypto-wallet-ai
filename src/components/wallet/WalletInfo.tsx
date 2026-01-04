@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wallet, Link as LinkIcon } from 'lucide-react';
+import { Wallet, Link as LinkIcon, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface WalletData {
   address: string;
@@ -27,6 +26,7 @@ const CHAIN_NAMES: Record<number, string> = {
 export function WalletInfo() {
   const [walletData, setWalletData] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     fetchWalletInfo();
@@ -46,20 +46,7 @@ export function WalletInfo() {
     }
   };
 
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
-            Loading Wallet...
-          </CardTitle>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (!walletData) {
+  if (loading || !walletData) {
     return null;
   }
 
@@ -68,67 +55,80 @@ export function WalletInfo() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Wallet className="h-5 w-5" />
-          Connected Wallet
-        </CardTitle>
-        <CardDescription>
-          Your Ethereum wallet is connected to the AI assistant
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <div className="text-sm font-medium text-muted-foreground mb-1">
-            Primary Wallet Address
-          </div>
+    <div className="fixed bottom-4 right-4 z-50">
+      <div
+        className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
+        style={{ minWidth: '280px', maxWidth: '320px' }}
+      >
+        {/* Header - Always visible, clickable to expand/collapse */}
+        <div
+          className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 rounded-t-lg transition-colors"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
           <div className="flex items-center gap-2">
-            <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
-              {shortenAddress(walletData.address)}
-            </code>
-            <a
-              href={`https://etherscan.io/address/${walletData.address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:text-blue-600"
-            >
-              <LinkIcon className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
-
-        <div>
-          <div className="text-sm font-medium text-muted-foreground mb-1">
-            Network
-          </div>
-          <div className="text-sm">
-            {CHAIN_NAMES[walletData.chainId] || `Chain ID ${walletData.chainId}`}
-          </div>
-        </div>
-
-        {walletData.wallets.length > 1 && (
-          <div>
-            <div className="text-sm font-medium text-muted-foreground mb-2">
-              All Connected Wallets ({walletData.wallets.length})
+            <div className="p-1.5 bg-green-500/10 rounded-full">
+              <Wallet className="h-4 w-4 text-green-500" />
             </div>
-            <div className="space-y-1">
-              {walletData.wallets.map((wallet, index) => (
-                <div
-                  key={index}
-                  className="text-sm flex items-center justify-between bg-muted/50 px-2 py-1 rounded"
+            <div>
+              <div className="text-sm font-semibold">Connected Wallet</div>
+              <div className="text-xs text-muted-foreground">
+                {CHAIN_NAMES[walletData.chainId] || `Chain ${walletData.chainId}`}
+              </div>
+            </div>
+          </div>
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
+
+        {/* Expandable content */}
+        {isExpanded && (
+          <div className="border-t border-border p-3 space-y-3">
+            <div>
+              <div className="text-xs font-medium text-muted-foreground mb-1">
+                Primary Address
+              </div>
+              <div className="flex items-center gap-2">
+                <code className="text-xs font-mono bg-muted px-2 py-1 rounded flex-1">
+                  {shortenAddress(walletData.address)}
+                </code>
+                <a
+                  href={`https://etherscan.io/address/${walletData.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:text-blue-600 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <code className="font-mono">{shortenAddress(wallet.address)}</code>
-                  <span className="text-xs text-muted-foreground">
-                    {CHAIN_NAMES[wallet.chainId] || `Chain ${wallet.chainId}`}
-                    {wallet.isPrimary && ' (Primary)'}
-                  </span>
-                </div>
-              ))}
+                  <LinkIcon className="h-3.5 w-3.5" />
+                </a>
+              </div>
             </div>
+
+            {walletData.wallets.length > 1 && (
+              <div>
+                <div className="text-xs font-medium text-muted-foreground mb-1">
+                  All Wallets ({walletData.wallets.length})
+                </div>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {walletData.wallets.map((wallet, index) => (
+                    <div
+                      key={index}
+                      className="text-xs flex items-center justify-between bg-muted/50 px-2 py-1 rounded"
+                    >
+                      <code className="font-mono">{shortenAddress(wallet.address)}</code>
+                      <span className="text-[10px] text-muted-foreground ml-2">
+                        {wallet.isPrimary && '★'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

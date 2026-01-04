@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import EmptyChatMessageInput from './EmptyChatMessageInput';
 import Footer, { defaultFooterLinks } from '@/components/layout/Footer';
 import SettingsButtonMobile from '@/components/Settings/SettingsButtonMobile';
@@ -10,14 +10,6 @@ import { WalletInfo } from '@/components/wallet/WalletInfo';
 
 const EmptyChat = ({ background }: { background?: string }) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [showWalletInfo, setShowWalletInfo] = useState(false);
-
-  // Check if user has a wallet connected
-  useEffect(() => {
-    fetch('/api/wallet/info')
-      .then(res => res.ok ? setShowWalletInfo(true) : setShowWalletInfo(false))
-      .catch(() => setShowWalletInfo(false));
-  }, []);
 
   return (
     <div className="relative min-h-screen w-full">
@@ -51,18 +43,14 @@ const EmptyChat = ({ background }: { background?: string }) => {
               </div>
             </div>
 
-            {/* Show wallet info if connected */}
-            {showWalletInfo && (
-              <div className="w-full max-w-md">
-                <WalletInfo />
-              </div>
-            )}
-
             <EmptyChatMessageInput />
           </div>
         </div>
       </div>
       <Footer listFooterLinks={defaultFooterLinks} />
+
+      {/* Floating wallet info */}
+      <WalletInfo />
 
       {/* Video Modal */}
       {isVideoModalOpen && (
