@@ -218,7 +218,7 @@ tools.push(
 Add these to your `.env` file for custom RPC endpoints:
 
 ```bash
-ETHEREUM_RPC_URL=https://eth.public-rpc.com
+ETHEREUM_RPC_URL=https://ethereum.publicnode.com
 POLYGON_RPC_URL=https://polygon-rpc.com
 OPTIMISM_RPC_URL=https://mainnet.optimism.io
 ARBITRUM_RPC_URL=https://arb1.arbitrum.io/rpc
