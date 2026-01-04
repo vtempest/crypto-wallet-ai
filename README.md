@@ -49,6 +49,11 @@ AI: *looks up transaction* "This transaction sent 1 ETH, confirmed in block 1823
    # At minimum, set BETTER_AUTH_SECRET (generate with: openssl rand -base64 32)
    ```
 
+   **Required - Blockchain RPC Endpoint:**
+   - Add `ETHEREUM_RPC_URL` to .env with your Ankr endpoint
+   - Get a free endpoint at https://www.ankr.com/rpc/
+   - Example: `ETHEREUM_RPC_URL=https://rpc.ankr.com/multichain/YOUR_API_KEY`
+
    **Optional - Enable MCP Servers:**
    - To enable Composio (100+ app integrations), add `COMPOSIO_API_KEY` to .env
    - Get your API key at https://composio.dev
