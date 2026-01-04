@@ -15,7 +15,7 @@ import { mainnet } from 'viem/chains';
  */
 function getRpcUrl(chainId: number = 1) {
   const rpcUrls: Record<number, string> = {
-    1: process.env.ETHEREUM_RPC_URL || 'https://eth.public-rpc.com',
+    1: process.env.ETHEREUM_RPC_URL || 'https://ethereum.publicnode.com',
     137: process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com',
     10: process.env.OPTIMISM_RPC_URL || 'https://mainnet.optimism.io',
     42161: process.env.ARBITRUM_RPC_URL || 'https://arb1.arbitrum.io/rpc',
