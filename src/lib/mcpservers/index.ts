@@ -1,9 +1,11 @@
 import { MCPServerUISection } from '@/lib/config/types';
 import ComposioMCPServer from './composio';
+import { EthereumMCPServer } from './ethereum';
 import BaseMCPServer, { MCPServerConstructor } from './baseMCPServer';
 
 const mcpServers: Record<string, MCPServerConstructor<any>> = {
   composio: ComposioMCPServer,
+  ethereum: EthereumMCPServer,
 };
 
 export const getMCPServersUIConfigSection = (): MCPServerUISection[] => {
@@ -23,5 +25,5 @@ export const getMCPServerByKey = (
   return mcpServers[key];
 };
 
-export { mcpServers, BaseMCPServer, ComposioMCPServer };
+export { mcpServers, BaseMCPServer, ComposioMCPServer, EthereumMCPServer };
 export default mcpServers;
